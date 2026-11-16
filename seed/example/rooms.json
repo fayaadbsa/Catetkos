@@ -1,0 +1,6 @@
+[
+  { "number": "01", "type": "Superior", "price": 1000000, "promo_price": 800000, "promo_start": "2026-11-01", "promo_end": "2026-12-31" },
+  { "number": "02", "type": "Deluxe", "price": 1500000 },
+  { "number": "03", "type": "Superior", "price": 1000000 },
+  { "number": "04", "type": "Superior", "price": 1000000 }
+]
