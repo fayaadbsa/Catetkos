@@ -1,6 +1,6 @@
-node_modules
-dist
 data
+dist
 .env
-seed/*.json
+node_modules
 !seed/example/
+seed/*.json

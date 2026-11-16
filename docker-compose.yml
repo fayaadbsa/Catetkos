@@ -1,0 +1,17 @@
+services:
+  app:
+    image: ${IMAGE_TAG:-ghcr.io/fayaadbsa/catetkos:main-latest}
+    container_name: ${CONTAINER_NAME:-catetkos-prod}
+    restart: unless-stopped
+    stop_grace_period: 10s
+    ports:
+      - "${HOST_PORT:-3005}:3005"
+    volumes:
+      - catetkos_data:/app/data
+    environment:
+      - PORT=3005
+      - NODE_ENV=production
+
+volumes:
+  catetkos_data:
+    name: ${COMPOSE_PROJECT:-catetkos-prod}_data
