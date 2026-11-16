@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     stop_grace_period: 10s
     ports:
-      - "${HOST_PORT:-3005}:3005"
+      - "127.0.0.1:${HOST_PORT:-3005}:3005"
     volumes:
       - catetkos_data:/app/data
     environment:
