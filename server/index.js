@@ -93,4 +93,4 @@ createServer(async (req, res) => {
     console.error(e);
     send(res, 500, { error: 'Server error' });
   }
-}).listen(PORT, '0.0.0.0', () => console.log(`catetkos on :${PORT}`));
+}).listen(PORT, '127.0.0.1', () => console.log(`catetkos on :${PORT}`));
