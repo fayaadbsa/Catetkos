@@ -1,6 +1,7 @@
 services:
   app:
     image: ${IMAGE_TAG:-ghcr.io/fayaadbsa/catetkos:main-latest}
+    build: .
     container_name: ${CONTAINER_NAME:-catetkos-prod}
     restart: unless-stopped
     stop_grace_period: 10s
