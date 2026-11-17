@@ -7,6 +7,7 @@ import Dashboard from './components/Dashboard.jsx';
 import PromoCalc from './components/PromoCalc.jsx';
 import { Button } from './components/ui.jsx';
 import Logo from './components/Logo.jsx';
+import ChangePassword from './components/ChangePassword.jsx';
 
 const TABS = [
   ['dash', 'Dashboard', 'LayoutDashboard'],
@@ -28,6 +29,7 @@ export default function App() {
   const [tab, setTab] = useState('dash');
   const [rooms, setRooms] = useState([]);
   const [dark, setDark] = useState(true);
+  const [pwOpen, setPwOpen] = useState(false);
 
   const boot = async () => {
     try { await api('/me'); setAuth('in'); } catch { setAuth('out'); }
@@ -73,6 +75,7 @@ export default function App() {
         </nav>
         <div className="mt-6 flex gap-2">
           <Button variant="ghost" onClick={() => setDark(!dark)}>{dark ? 'Light' : 'Dark'}</Button>
+          <Button variant="ghost" onClick={() => setPwOpen(true)}>Password</Button>
           <Button variant="ghost" onClick={logout}>Keluar</Button>
         </div>
       </aside>
@@ -83,6 +86,7 @@ export default function App() {
           <Crud key={tab} table={tab === 'rooms' ? 'rooms' : tab} title={titles[tab]} columns={cols[tab]} fields={forms[tab]} rooms={rooms} />
         )}
         {!needSetup && tab === 'rooms' && <Wizard onDone={loadRooms} />}
+        {pwOpen && <ChangePassword onDone={() => setAuth('out')} onClose={() => setPwOpen(false)} />}
       </main>
       <nav className="fixed inset-x-0 bottom-0 flex justify-around border-t border-zinc-800 bg-zinc-950 p-2 md:hidden">
         {TABS.map(([k, l]) => (

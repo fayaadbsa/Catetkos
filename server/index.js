@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { db } from './db.js';
-import { createUser, verify, newSession, sessionUser, dropSession } from './auth.js';
+import { createUser, verify, newSession, sessionUser, dropSession, changePassword } from './auth.js';
 import { dashboard } from './dashboard.js';
 
 const PORT = process.env.PORT || 3005;
@@ -44,6 +44,12 @@ async function api(req, res, url) {
   if (!user) return send(res, 401, { error: 'Belum login' });
   if (p === '/api/me') return send(res, 200, user);
   if (p === '/api/dashboard') return send(res, 200, dashboard());
+  if (p === '/api/password' && req.method === 'POST') {
+    const b = await readBody(req);
+    if (!b.oldPassword || !b.newPassword) return send(res, 400, { error: 'Isi password lama dan baru' });
+    if (!changePassword(user.id, String(b.oldPassword), String(b.newPassword))) return send(res, 400, { error: 'Password lama salah' });
+    return send(res, 200, { ok: true }, { 'Set-Cookie': 'sid=; HttpOnly; Path=/; Max-Age=0' });
+  }
 
   const m = p.match(/^\/api\/(rooms|bookings|expenses|capital)(?:\/(\d+))?$/);
   if (!m) return send(res, 404, { error: 'Not found' });

@@ -25,4 +25,12 @@ export function sessionUser(token) {
   db.prepare('DELETE FROM sessions WHERE expires<?').run(Date.now());
   return db.prepare('SELECT u.id,u.username FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?').get(token) || null;
 }
+export function changePassword(userId, oldPw, newPw) {
+  const u = db.prepare('SELECT * FROM users WHERE id=?').get(userId);
+  if (!u || !verify(u.username, oldPw)) return false;
+  const { salt, hash } = hashPw(newPw);
+  db.prepare('UPDATE users SET hash=?, salt=? WHERE id=?').run(hash, salt, userId);
+  db.prepare('DELETE FROM sessions WHERE user_id=?').run(userId); // paksa login ulang di semua sesi
+  return true;
+}
 export const dropSession = (token) => db.prepare('DELETE FROM sessions WHERE token=?').run(token);
