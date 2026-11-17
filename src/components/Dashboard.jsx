@@ -14,12 +14,13 @@ export default function Dashboard() {
   const types = Object.entries(d.byType).map(([name, v]) => ({ name, value: v.revenue }));
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat color="#34d399" label="Okupansi 30 hari" value={`${d.occupancy}%`} hint={`${d.roomCount} kamar`} />
-        <Stat color="#a78bfa" label="Omzet promo" value={rp(d.promoSplit.promo)} />
-        <Stat color="#22d3ee" label="Omzet normal" value={rp(d.promoSplit.normal)} />
+        <Stat color="#a78bfa" label="Omzet promo (30 hari)" value={rp(d.promoSplit.promo)} />
+        <Stat color="#22d3ee" label="Omzet normal (30 hari)" value={rp(d.promoSplit.normal)} />
+        <Stat color="#fb7185" label="Belum dibayar" value={rp(d.receivable.total)} hint={`${d.receivable.count} booking`} />
         <Stat color="#fbbf24" label="Balik modal" value={pb.capitalTotal ? (pb.done ? 'Sudah!' : `${pb.pct}%`) : '-'}
-          hint={pb.monthsLeft ? `±${pb.monthsLeft} bulan lagi` : pb.capitalTotal ? '' : 'Isi modal dulu'} />
+          hint={pb.monthsLeft ? `±${pb.monthsLeft} bulan lagi` : pb.capitalTotal ? `Modal ${rp(pb.capitalTotal)}` : 'Isi modal di Keuangan'} />
       </div>
 
       <Card>
@@ -35,7 +36,7 @@ export default function Dashboard() {
                   {r.number} · {r.type}
                 </div>
                 <div className="mt-1 text-xs text-zinc-400">
-                  {r.occupied ? 'Ada penghuni, aman' : r.emptyDays === null ? 'Belum pernah laku, sabar' : `Nganggur ${Math.round(r.emptyDays)} hari`}
+                  {r.occupied ? 'Ada penghuni, aman' : r.emptyDays === null ? 'Belum pernah laku, sabar' : `Nganggur ${Math.round(r.emptyDays)} hari`}{!r.occupied && r.upcoming ? ` · booking ${r.upcoming}` : ''}
                 </div>
               </div>
             );
@@ -54,8 +55,9 @@ export default function Dashboard() {
                 <YAxis stroke={C.axis} tickFormatter={short} />
                 <Tooltip formatter={(v) => rp(v)} contentStyle={C.tip} cursor={{ fill: '#27272a80' }} />
                 <Legend />
-                <Bar dataKey="income" name="Pemasukan" fill={C.income} radius={[6, 6, 0, 0]} />
-                <Bar dataKey="expense" name="Pengeluaran" fill={C.expense} radius={[6, 6, 0, 0]} />
+                <Bar isAnimationActive={false} dataKey="income" name="Pemasukan" fill={C.income} radius={[6, 6, 0, 0]} />
+                <Bar isAnimationActive={false} dataKey="expense" name="Pengeluaran" fill={C.expense} radius={[6, 6, 0, 0]} />
+                <Bar isAnimationActive={false} dataKey="capital" name="Modal" fill="#a78bfa" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -78,6 +80,18 @@ export default function Dashboard() {
           ) : <p className="text-sm text-zinc-500">Belum ada booking.</p>}
         </Card>
       </div>
+
+      <Card>
+        <h3 className="mb-2 font-semibold">Biaya per kategori (30 hari)</h3>
+        {d.expenseByCat.length ? (
+          <div className="h-56"><ResponsiveContainer><BarChart data={d.expenseByCat} layout="vertical" margin={{ left: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={C.grid} horizontal={false} />
+            <XAxis type="number" stroke={C.axis} tickFormatter={short} /><YAxis type="category" dataKey="name" stroke={C.axis} width={80} />
+            <Tooltip formatter={(v) => rp(v)} contentStyle={C.tip} cursor={{ fill: '#27272a80' }} />
+            <Bar dataKey="value" name="Biaya" radius={[0, 6, 6, 0]}>{d.expenseByCat.map((t, i) => <Cell key={t.name} fill={roomColor(i)} />)}</Bar>
+          </BarChart></ResponsiveContainer></div>
+        ) : <p className="text-sm text-zinc-500">Belum ada biaya 30 hari ini.</p>}
+      </Card>
 
       <Card>
         <h3 className="mb-2 font-semibold">Bisik-bisik dashboard</h3>

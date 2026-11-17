@@ -1,73 +1,84 @@
 import { db } from './db.js';
+import { diffDays } from './resources.js';
 
 const iso = (d) => d.toISOString().slice(0, 10);
 const addDays = (s, n) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return iso(d); };
+const sum = (sql, ...p) => db.prepare(sql).get(...p).s;
 
-// Insight kamar, okupansi, cashflow, balik modal. Semua dihitung dari DB.
+// Semua angka dari DB. Window 30 hari konsisten untuk okupansi, omzet tipe, promo, dan biaya per kategori.
 export function dashboard(today = iso(new Date())) {
   const WIN = 30;
   const wStart = addDays(today, -WIN + 1);
   const wEnd = addDays(today, 1); // exclusive
-  const rooms = db.prepare('SELECT * FROM rooms ORDER BY number').all();
-  const bookings = db.prepare('SELECT b.*, r.number, r.type FROM bookings b JOIN rooms r ON r.id=b.room_id').all();
+  const rooms = db.prepare('SELECT r.id, r.number, t.name type FROM rooms r JOIN room_types t ON t.id=r.room_type_id WHERE r.archived=0 ORDER BY r.number').all();
+  const activeIds = new Set(rooms.map((r) => r.id));
+  const bookings = db.prepare("SELECT b.*, t.name type FROM bookings b JOIN rooms r ON r.id=b.room_id JOIN room_types t ON t.id=r.room_type_id WHERE b.status!='cancelled'").all();
 
-  // okupansi: malam terisi di window / (kamar * hari)
+  // okupansi: malam terisi di window / (kamar aktif * hari). check_out eksklusif.
   let occNights = 0;
   for (const b of bookings) {
+    if (!activeIds.has(b.room_id)) continue;
     const s = b.check_in > wStart ? b.check_in : wStart;
-    const e = addDays(b.check_in, b.nights) < wEnd ? addDays(b.check_in, b.nights) : wEnd;
-    if (e > s) occNights += (new Date(e) - new Date(s)) / 86400000;
+    const e = b.check_out < wEnd ? b.check_out : wEnd;
+    if (e > s) occNights += diffDays(s, e);
   }
   const occupancy = rooms.length ? Math.round((occNights / (rooms.length * WIN)) * 100) : 0;
 
+  const inWin = bookings.filter((b) => b.check_in >= wStart && b.check_in < wEnd);
   const byType = {}, promoSplit = { promo: 0, normal: 0 };
-  for (const b of bookings) {
+  for (const b of inWin) {
     byType[b.type] ??= { revenue: 0, nights: 0 };
-    byType[b.type].revenue += b.price;
-    byType[b.type].nights += b.nights;
-    promoSplit[b.is_promo ? 'promo' : 'normal'] += b.price;
+    byType[b.type].revenue += b.price_total;
+    byType[b.type].nights += diffDays(b.check_in, b.check_out);
+    promoSplit[b.promo_id ? 'promo' : 'normal'] += b.price_total;
   }
 
   const emptyRooms = rooms.map((r) => {
-    const last = bookings.filter((b) => b.room_id === r.id).map((b) => addDays(b.check_in, b.nights)).sort().pop();
-    const isOccupiedToday = bookings.some((b) => b.room_id === r.id && b.check_in <= today && addDays(b.check_in, b.nights) > today);
-    return { id: r.id, number: r.number, type: r.type, occupied: isOccupiedToday,
-      emptyDays: isOccupiedToday ? 0 : last ? Math.max(0, (new Date(today) - new Date(last)) / 86400000) : null };
+    const mine = bookings.filter((b) => b.room_id === r.id);
+    const occupied = mine.some((b) => b.check_in <= today && b.check_out > today);
+    const last = mine.map((b) => b.check_out).filter((d) => d <= today).sort().pop();
+    const next = mine.map((b) => b.check_in).filter((d) => d > today).sort()[0] ?? null;
+    return { id: r.id, number: r.number, type: r.type, occupied, upcoming: next, emptyDays: occupied ? 0 : last ? diffDays(last, today) : null };
   });
 
-  // cashflow 6 bulan terakhir
+  // arus kas 6 bulan: income, expense (operasional), capital (investasi). net = income - expense.
   const ym = today.slice(0, 7);
   const months = [];
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(ym + '-01T00:00:00Z'); d.setUTCMonth(d.getUTCMonth() - i);
-    months.push(d.toISOString().slice(0, 7));
-  }
-  const income = db.prepare("SELECT COALESCE(SUM(price),0) s FROM bookings WHERE paid=1 AND substr(check_in,1,7)=?");
-  const outcome = db.prepare("SELECT COALESCE(SUM(amount),0) s FROM expenses WHERE substr(date,1,7)=?");
+  for (let i = 5; i >= 0; i--) { const d = new Date(ym + '-01T00:00:00Z'); d.setUTCMonth(d.getUTCMonth() - i); months.push(iso(d).slice(0, 7)); }
+  const rows = db.prepare('SELECT substr(t.date,1,7) m, c.kind k, SUM(t.amount) s FROM transactions t JOIN categories c ON c.id=t.category_id WHERE t.date>=? GROUP BY m, k').all(months[0] + '-01');
   const cashflow = months.map((m) => {
-    const inc = income.get(m).s, exp = outcome.get(m).s;
-    return { month: m, income: inc, expense: exp, net: inc - exp };
+    const g = (k) => rows.find((r) => r.m === m && r.k === k)?.s ?? 0;
+    return { month: m, income: g('income'), expense: g('expense'), capital: g('capital'), net: g('income') - g('expense') };
   });
 
-  // balik modal: kumulatif net (semua waktu) vs total modal
-  const totalIncome = db.prepare('SELECT COALESCE(SUM(price),0) s FROM bookings WHERE paid=1').get().s;
-  const totalExp = db.prepare('SELECT COALESCE(SUM(amount),0) s FROM expenses').get().s;
-  const capitalTotal = db.prepare('SELECT COALESCE(SUM(amount),0) s FROM capital').get().s;
-  const cumNet = totalIncome - totalExp;
+  const total = (k) => sum('SELECT COALESCE(SUM(t.amount),0) s FROM transactions t JOIN categories c ON c.id=t.category_id WHERE c.kind=?', k);
+  const capitalTotal = total('capital');
+  const cumNet = total('income') - total('expense');
   const recent = cashflow.slice(-3).reduce((a, m) => a + m.net, 0) / 3;
-  const paybackPct = capitalTotal ? Math.max(0, Math.round((cumNet / capitalTotal) * 100)) : null;
-  const monthsLeft = capitalTotal > cumNet && recent > 0 ? Math.ceil((capitalTotal - cumNet) / recent) : null;
+  const payback = {
+    capitalTotal, cumNet,
+    pct: capitalTotal ? Math.max(0, Math.round((cumNet / capitalTotal) * 100)) : null,
+    monthsLeft: capitalTotal > cumNet && recent > 0 ? Math.ceil((capitalTotal - cumNet) / recent) : null,
+    done: capitalTotal > 0 && cumNet >= capitalTotal,
+  };
+
+  // piutang: booking aktif yang belum lunas
+  const unpaid = db.prepare(`SELECT b.id, b.check_in, b.price_total - COALESCE((SELECT SUM(amount) FROM transactions t WHERE t.booking_id=b.id),0) due
+    FROM bookings b WHERE b.status!='cancelled'`).all().filter((b) => b.due > 0);
+  const receivable = { total: unpaid.reduce((a, b) => a + b.due, 0), count: unpaid.length, overdue: unpaid.filter((b) => b.check_in <= today).length };
+
+  const expenseByCat = db.prepare("SELECT c.name, SUM(t.amount) value FROM transactions t JOIN categories c ON c.id=t.category_id WHERE c.kind='expense' AND t.date>=? AND t.date<? GROUP BY c.id ORDER BY value DESC").all(wStart, wEnd);
 
   const insights = [];
   for (const r of emptyRooms) {
-    if (!r.occupied && r.emptyDays === null) insights.push(`Kamar ${r.number} (${r.type}) belum pernah disewa.`);
-    else if (!r.occupied && r.emptyDays >= 3) insights.push(`Kamar ${r.number} (${r.type}) kosong ${r.emptyDays} hari. Pertimbangkan promo.`);
+    if (r.occupied || (r.upcoming && diffDays(today, r.upcoming) <= 3)) continue;
+    if (r.emptyDays === null) insights.push(`Kamar ${r.number} (${r.type}) belum pernah disewa.`);
+    else if (r.emptyDays >= 3) insights.push(`Kamar ${r.number} (${r.type}) kosong ${r.emptyDays} hari. Pertimbangkan promo.`);
   }
-  if (occupancy < 50) insights.push(`Okupansi 30 hari cuma ${occupancy}%. Cek harga dan promo.`);
-  if (promoSplit.promo > promoSplit.normal && bookings.length) insights.push('Omzet lebih banyak dari promo. Pastikan margin masih aman.');
+  if (rooms.length && occupancy < 50) insights.push(`Okupansi 30 hari cuma ${occupancy}%. Cek harga dan promo.`);
+  if (receivable.overdue) insights.push(`${receivable.overdue} booking belum lunas padahal sudah check-in. Tagih.`);
+  if (promoSplit.promo > promoSplit.normal) insights.push('Omzet 30 hari lebih banyak dari promo. Pastikan margin masih aman.');
   if (!insights.length) insights.push('Aman. Belum ada sinyal bahaya.');
 
-  return { today, occupancy, roomCount: rooms.length, byType, promoSplit, emptyRooms, cashflow,
-    payback: { capitalTotal, cumNet, pct: paybackPct, monthsLeft, done: capitalTotal > 0 && cumNet >= capitalTotal },
-    insights };
+  return { today, occupancy, roomCount: rooms.length, byType, promoSplit, emptyRooms, cashflow, expenseByCat, payback, receivable, insights };
 }

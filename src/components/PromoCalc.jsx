@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { rp } from '../lib/api.js';
 import { promoCheck } from '../lib/promo.js';
 import { Card, Input, Label } from './ui.jsx';
 
@@ -21,4 +22,3 @@ export default function PromoCalc() {
     </div>
   );
 }
-import { rp } from '../lib/api.js';

@@ -1,23 +1,16 @@
 import { createServer } from 'node:http';
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { extname, join, normalize, resolve, sep } from 'node:path';
-import { db } from './db.js';
 import { createUser, verify, newSession, sessionUser, dropSession, changePassword } from './auth.js';
 import { dashboard } from './dashboard.js';
+import { isResource, list, create, update, remove, quote, HttpError } from './resources.js';
 
 const PORT = process.env.PORT || 3005;
 const DIST = 'dist';
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon' };
 
-// CRUD tabel sederhana: whitelist kolom biar aman dari SQL injection
-const TABLES = {
-  rooms: ['number', 'type', 'price', 'promo_price', 'promo_start', 'promo_end'],
-  bookings: ['room_id', 'guest', 'check_in', 'nights', 'price', 'is_promo', 'paid', 'note'],
-  expenses: ['date', 'category', 'amount', 'note'],
-  capital: ['date', 'item', 'type', 'amount', 'note'],
-};
-const pick = (t, body) => TABLES[t].map((c) => (body[c] === undefined ? null : body[c]));
-
+// ponytail: rate limit login in-memory per IP (reset saat restart; di balik proxy IP = proxy). Upgrade: baca X-Forwarded-For terpercaya.
+const fails = new Map();
 const send = (res, code, data, headers = {}) => {
   res.writeHead(code, { 'Content-Type': 'application/json', ...headers });
   res.end(JSON.stringify(data));
@@ -32,9 +25,12 @@ async function api(req, res, url) {
   const p = url.pathname;
   if (p === '/api/status') return send(res, 200, { ok: true });
   if (p === '/api/login' && req.method === 'POST') {
+    const ip = req.socket.remoteAddress, f = fails.get(ip);
+    if (f && f.n >= 5 && Date.now() < f.until) return send(res, 429, { error: 'Kebanyakan percobaan. Coba lagi sebentar.' });
     const b = await readBody(req);
     const u = verify(String(b.username || ''), String(b.password || ''));
-    if (!u) return send(res, 401, { error: 'Login gagal' });
+    if (!u) { fails.set(ip, { n: (f?.n || 0) + 1, until: Date.now() + 60_000 }); return send(res, 401, { error: 'Login gagal' }); }
+    fails.delete(ip);
     const token = newSession(u.id);
     return send(res, 200, { username: u.username }, { 'Set-Cookie': `sid=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=604800` });
   }
@@ -51,25 +47,14 @@ async function api(req, res, url) {
     return send(res, 200, { ok: true }, { 'Set-Cookie': 'sid=; HttpOnly; Path=/; Max-Age=0' });
   }
 
-  const m = p.match(/^\/api\/(rooms|bookings|expenses|capital)(?:\/(\d+))?$/);
-  if (!m) return send(res, 404, { error: 'Not found' });
+  if (p === '/api/quote') return send(res, 200, quote(Number(url.searchParams.get('room_id')), url.searchParams.get('check_in'), url.searchParams.get('check_out')));
+  const m = p.match(/^\/api\/([a-z-]+)(?:\/(\d+))?$/);
+  if (!m || !isResource(m[1])) return send(res, 404, { error: 'Not found' });
   const [, t, id] = m;
-  if (req.method === 'GET' && !id) return send(res, 200, db.prepare(`SELECT * FROM ${t} ORDER BY id DESC`).all());
-  if (req.method === 'POST' && !id) {
-    const body = await readBody(req);
-    const cols = TABLES[t];
-    const r = db.prepare(`INSERT INTO ${t}(${cols.join(',')}) VALUES(${cols.map(() => '?').join(',')})`).run(...pick(t, body));
-    return send(res, 201, { id: Number(r.lastInsertRowid) });
-  }
-  if (req.method === 'PUT' && id) {
-    const body = await readBody(req);
-    db.prepare(`UPDATE ${t} SET ${TABLES[t].map((c) => c + '=?').join(',')} WHERE id=?`).run(...pick(t, body), id);
-    return send(res, 200, { ok: true });
-  }
-  if (req.method === 'DELETE' && id) {
-    db.prepare(`DELETE FROM ${t} WHERE id=?`).run(id);
-    return send(res, 200, { ok: true });
-  }
+  if (req.method === 'GET' && !id) return send(res, 200, list(t, Object.fromEntries(url.searchParams)));
+  if (req.method === 'POST' && !id) return send(res, 201, create(t, await readBody(req)));
+  if (req.method === 'PUT' && id) return send(res, 200, update(t, Number(id), await readBody(req)));
+  if (req.method === 'DELETE' && id) return send(res, 200, remove(t, Number(id)));
   return send(res, 405, { error: 'Method not allowed' });
 }
 
@@ -89,6 +74,8 @@ createServer(async (req, res) => {
     if (url.pathname.startsWith('/api/')) return await api(req, res, url);
     staticFile(res, url.pathname);
   } catch (e) {
+    if (e instanceof HttpError) return send(res, e.status, { error: e.message });
+    if (e.message === 'bad json') return send(res, 400, { error: 'JSON tidak valid' });
     console.error(e);
     send(res, 500, { error: 'Server error' });
   }

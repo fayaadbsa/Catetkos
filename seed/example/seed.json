@@ -1,0 +1,16 @@
+{
+  "room_types": [
+    { "name": "Superior", "base_price": 1000000, "capacity": 1 },
+    { "name": "Deluxe", "base_price": 1500000, "capacity": 2 }
+  ],
+  "rooms": [{ "number": "01", "type": "Superior" }, { "number": "02", "type": "Deluxe" }, { "number": "03", "type": "Superior" }, { "number": "04", "type": "Superior" }],
+  "promos": [{ "name": "Promo Akhir Tahun", "type": "Superior", "price": 800000, "start_date": "2026-11-01", "end_date": "2026-12-31" }],
+  "bookings": [
+    { "room": "01", "guest": "Tamu A", "check_in": "2026-11-02", "check_out": "2026-11-07", "status": "checked_out", "paid": true },
+    { "room": "03", "guest": "Budi", "check_in": "2026-11-10", "check_out": "2026-11-12", "status": "checked_in", "paid": 500000 }
+  ],
+  "transactions": [
+    { "kind": "capital", "category": "Bangunan", "date": "2026-01-10", "amount": 15000000, "note": "contoh renovasi" },
+    { "kind": "expense", "category": "Listrik", "date": "2026-10-05", "amount": 450000, "note": "contoh" }
+  ]
+}

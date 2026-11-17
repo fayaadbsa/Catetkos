@@ -1,68 +1,84 @@
-// Tabel CRUD generik: rooms, bookings, expenses, capital.
+// CRUD generik berbasis config. Dipakai semua entity. Validasi final di server, error ditampilkan sebagai toast.
 import { useEffect, useState } from 'react';
-import { api, rp } from '../lib/api.js';
-import { Button, Card, Input, Label } from './ui.jsx';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { api, toast } from '../lib/api.js';
+import { Button, Card, Input, Label, Modal, Select } from './ui.jsx';
 
-export default function Crud({ table, title, fields, columns, rooms }) {
-  const [rows, setRows] = useState([]);
+// field: {key,label,type:text|number|date|bool|select,options:[{v,l}],hint}
+// extra: render tambahan di bawah form. onChange(form): return patch otomatis (mis. harga). actions(row): tombol ekstra per baris.
+export default function Crud({ resource, title, columns, fields, query = '', defaults = {}, canAdd = true, onChange, extra, actions, onSaved, empty = 'Belum ada data.', bare }) {
+  const [rows, setRows] = useState(null);
   const [form, setForm] = useState(null);
-  const load = () => api('/' + table).then(setRows);
-  useEffect(() => { load(); }, [table]);
-  const save = async () => {
-    const body = Object.fromEntries(fields.map((f) => [f.key, f.type === 'number' ? +form[f.key] || 0 : form[f.key] || null]));
-    if (form.id) await api(`/${table}/${form.id}`, { method: 'PUT', body }); else await api('/' + table, { body });
-    setForm(null); load();
+  const [busy, setBusy] = useState(false);
+  const load = () => api(`/${resource}${query}`).then(setRows).catch((e) => toast(e.message, true));
+  useEffect(() => { setRows(null); load(); }, [resource, query]);
+
+  const set = async (patch) => {
+    const next = { ...form, ...patch };
+    setForm(next);
+    if (onChange) { const extraPatch = await onChange(next, patch); if (extraPatch) setForm((f) => ({ ...f, ...extraPatch })); }
   };
-  const del = async (id) => { if (confirm('Hapus data ini?')) { await api(`/${table}/${id}`, { method: 'DELETE' }); load(); } };
-  const opts = fields.map((f) => f.key === 'room_id' ? { ...f, options: rooms.map((r) => ({ v: r.id, l: `${r.number} - ${r.type}` })) } : f);
+  const save = async (e) => {
+    e.preventDefault(); setBusy(true);
+    try {
+      const body = Object.fromEntries(fields.map((f) => [f.key, form[f.key] ?? null]));
+      if (form.id) await api(`/${resource}/${form.id}`, { method: 'PUT', body }); else await api('/' + resource, { body });
+      toast('Tersimpan'); setForm(null); await load(); onSaved?.();
+    } catch (err) { toast(err.message, true); } finally { setBusy(false); }
+  };
+  const del = async (r) => {
+    if (!confirm('Hapus data ini?')) return;
+    try { await api(`/${resource}/${r.id}`, { method: 'DELETE' }); toast('Terhapus'); load(); onSaved?.(); } catch (err) { toast(err.message, true); }
+  };
+
+  const input = (f) => {
+    const v = form[f.key] ?? '';
+    if (f.type === 'select') return <Select value={v} onChange={(e) => set({ [f.key]: e.target.value })} required={f.req}><option value="">-</option>{f.options.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}</Select>;
+    if (f.type === 'bool') return <input type="checkbox" className="size-5" checked={!!form[f.key]} onChange={(e) => set({ [f.key]: e.target.checked ? 1 : 0 })} />;
+    return <Input type={f.type === 'number' ? 'number' : f.type || 'text'} inputMode={f.type === 'number' ? 'numeric' : undefined} value={v} required={f.req} min={f.type === 'number' ? 0 : undefined}
+      onChange={(e) => set({ [f.key]: f.type === 'number' && e.target.value !== '' ? Number(e.target.value) : e.target.value })} />;
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      {!bare && <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">{title}</h2>
-        <Button onClick={() => setForm({})}>+ Tambah</Button>
-      </div>
+        {canAdd && <Button onClick={() => setForm({ ...defaults })}><Plus size={16} /> Tambah</Button>}
+      </div>}
+      {bare && canAdd && <div className="flex justify-end"><Button onClick={() => setForm({ ...defaults })}><Plus size={16} /> Tambah</Button></div>}
       {form && (
-        <Card className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {opts.map((f) => (
-            <Label key={f.key}>{f.label}
-              {f.options ? (
-                <select className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm" value={form[f.key] ?? ''} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}>
-                  <option value="">-</option>
-                  {f.options.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
-                </select>
-              ) : f.type === 'bool' ? (
-                <input type="checkbox" checked={!!form[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.checked ? 1 : 0 })} />
-              ) : (
-                <Input type={f.type || 'text'} value={form[f.key] ?? ''} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
-              )}
-            </Label>
-          ))}
-          <div className="col-span-full flex gap-2">
-            <Button onClick={save}>Simpan</Button>
-            <Button variant="ghost" onClick={() => setForm(null)}>Batal</Button>
-          </div>
-        </Card>
+        <Modal title={`${form.id ? 'Edit' : 'Tambah'} ${title}`} onClose={() => setForm(null)}>
+          <form onSubmit={save} className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {fields.filter((f) => !f.hide?.(form)).map((f) => (
+              <Label key={f.key}>{f.label}{!!f.req && ' *'}{input(f)}{f.hint?.(form) && <span className="mt-1 block text-zinc-500">{f.hint(form)}</span>}</Label>
+            ))}
+            {extra?.(form, set)}
+            <div className="col-span-full flex gap-2">
+              <Button disabled={busy}>{busy ? 'Menyimpan...' : 'Simpan'}</Button>
+              <Button type="button" variant="ghost" onClick={() => setForm(null)}>Batal</Button>
+            </div>
+          </form>
+        </Modal>
       )}
       <Card className="overflow-x-auto p-0">
         <table className="w-full text-sm">
-          <thead className="text-left text-xs text-zinc-400">
-            <tr>{columns.map((c) => <th key={c.key} className="p-3">{c.label}</th>)}<th /></tr>
-          </thead>
+          <thead className="text-left text-xs text-zinc-400"><tr>{columns.map((c) => <th key={c.key} className="whitespace-nowrap p-3">{c.label}</th>)}<th /></tr></thead>
           <tbody>
-            {rows.map((r) => (
+            {rows?.map((r) => (
               <tr key={r.id} className="border-t border-zinc-800">
-                {columns.map((c) => <td key={c.key} className="p-3">{c.fmt ? c.fmt(r, rooms) : r[c.key] ?? '-'}</td>)}
-                <td className="p-3 text-right whitespace-nowrap">
-                  <Button variant="ghost" onClick={() => setForm({ ...r })}>Edit</Button>
-                  <Button variant="danger" onClick={() => del(r.id)}>Hapus</Button>
+                {columns.map((c) => <td key={c.key} className="whitespace-nowrap p-3">{c.fmt ? c.fmt(r) : r[c.key] ?? '-'}</td>)}
+                <td className="whitespace-nowrap p-3 text-right">
+                  {actions?.(r, load)}
+                  <Button variant="ghost" aria-label="Edit" onClick={() => setForm({ ...r })}><Pencil size={15} /></Button>
+                  <Button variant="ghost" aria-label="Hapus" className="text-rose-400" onClick={() => del(r)}><Trash2 size={15} /></Button>
                 </td>
               </tr>
             ))}
-            {!rows.length && <tr><td className="p-3 text-zinc-500" colSpan={columns.length + 1}>Belum ada data.</td></tr>}
+            {rows && !rows.length && <tr><td className="p-3 text-zinc-500" colSpan={columns.length + 1}>{empty}</td></tr>}
+            {!rows && <tr><td className="p-3 text-zinc-500" colSpan={columns.length + 1}>Lagi muat...</td></tr>}
           </tbody>
         </table>
       </Card>
     </div>
   );
 }
-export { rp };

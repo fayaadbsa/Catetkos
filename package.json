@@ -9,7 +9,7 @@
     "build": "vite build",
     "start": "node server/index.js",
     "seed": "node scripts/seed.js",
-    "test": "node --test test/promo.test.js",
+    "test": "node --test test/*.test.js",
     "seed:admin": "node scripts/seed-admin.js",
     "set:password": "node scripts/set-password.js"
   },
