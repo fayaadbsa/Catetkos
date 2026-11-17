@@ -16,8 +16,8 @@ export default function PromoCalc() {
         ))}
       </Card>
       <Card>
-        <p className={r.worth ? 'text-emerald-400' : 'text-amber-400'}>{r.verdict}</p>
-        <p className="mt-2 text-sm text-zinc-400">Diskon {r.discount}% · margin/malam {rp(r.margin)}</p>
+        <p className={r.worth ? 'text-primary' : 'text-warn'}>{r.verdict}</p>
+        <p className="mt-2 text-sm text-mut">Diskon {r.discount}% · margin/malam {rp(r.margin)}</p>
       </Card>
     </div>
   );

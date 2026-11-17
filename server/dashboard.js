@@ -77,7 +77,7 @@ export function dashboard(today = iso(new Date())) {
   }
   if (rooms.length && occupancy < 50) insights.push(`Okupansi 30 hari cuma ${occupancy}%. Cek harga dan promo.`);
   if (receivable.overdue) insights.push(`${receivable.overdue} booking belum lunas padahal sudah check-in. Tagih.`);
-  if (promoSplit.promo > promoSplit.normal) insights.push('Omzet 30 hari lebih banyak dari promo. Pastikan margin masih aman.');
+  if (promoSplit.promo > 0 && promoSplit.promo > promoSplit.normal) insights.push('Mayoritas omzet 30 hari datang dari promo. Pastikan margin masih aman.');
   if (!insights.length) insights.push('Aman. Belum ada sinyal bahaya.');
 
   return { today, occupancy, roomCount: rooms.length, byType, promoSplit, emptyRooms, cashflow, expenseByCat, payback, receivable, insights };

@@ -50,7 +50,7 @@ export default function Crud({ resource, title, columns, fields, query = '', def
         <Modal title={`${form.id ? 'Edit' : 'Tambah'} ${title}`} onClose={() => setForm(null)}>
           <form onSubmit={save} className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {fields.filter((f) => !f.hide?.(form)).map((f) => (
-              <Label key={f.key}>{f.label}{!!f.req && ' *'}{input(f)}{f.hint?.(form) && <span className="mt-1 block text-zinc-500">{f.hint(form)}</span>}</Label>
+              <Label key={f.key}>{f.label}{!!f.req && ' *'}{input(f)}{f.hint?.(form) && <span className="mt-1 block text-mut">{f.hint(form)}</span>}</Label>
             ))}
             {extra?.(form, set)}
             <div className="col-span-full flex gap-2">
@@ -62,20 +62,20 @@ export default function Crud({ resource, title, columns, fields, query = '', def
       )}
       <Card className="overflow-x-auto p-0">
         <table className="w-full text-sm">
-          <thead className="text-left text-xs text-zinc-400"><tr>{columns.map((c) => <th key={c.key} className="whitespace-nowrap p-3">{c.label}</th>)}<th /></tr></thead>
+          <thead className="text-left text-xs uppercase tracking-wide text-mut"><tr>{columns.map((c) => <th key={c.key} className="whitespace-nowrap p-3">{c.label}</th>)}<th /></tr></thead>
           <tbody>
             {rows?.map((r) => (
-              <tr key={r.id} className="border-t border-zinc-800">
+              <tr key={r.id} className="border-t border-line hover:bg-soft/50">
                 {columns.map((c) => <td key={c.key} className="whitespace-nowrap p-3">{c.fmt ? c.fmt(r) : r[c.key] ?? '-'}</td>)}
                 <td className="whitespace-nowrap p-3 text-right">
                   {actions?.(r, load)}
                   <Button variant="ghost" aria-label="Edit" onClick={() => setForm({ ...r })}><Pencil size={15} /></Button>
-                  <Button variant="ghost" aria-label="Hapus" className="text-rose-400" onClick={() => del(r)}><Trash2 size={15} /></Button>
+                  <Button variant="ghost" aria-label="Hapus" className="text-danger" onClick={() => del(r)}><Trash2 size={15} /></Button>
                 </td>
               </tr>
             ))}
-            {rows && !rows.length && <tr><td className="p-3 text-zinc-500" colSpan={columns.length + 1}>{empty}</td></tr>}
-            {!rows && <tr><td className="p-3 text-zinc-500" colSpan={columns.length + 1}>Lagi muat...</td></tr>}
+            {rows && !rows.length && <tr><td className="p-3 text-mut" colSpan={columns.length + 1}>{empty}</td></tr>}
+            {!rows && <tr><td className="p-3 text-mut" colSpan={columns.length + 1}>Lagi muat...</td></tr>}
           </tbody>
         </table>
       </Card>

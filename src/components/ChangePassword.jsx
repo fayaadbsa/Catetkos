@@ -18,8 +18,8 @@ export default function ChangePassword({ onDone, onClose }) {
       <form onSubmit={submit} className="space-y-3">
         <Label>Password lama<Input type="password" value={f.oldPassword} onChange={(e) => setF({ ...f, oldPassword: e.target.value })} required /></Label>
         <Label>Password baru<Input type="password" value={f.newPassword} onChange={(e) => setF({ ...f, newPassword: e.target.value })} required /></Label>
-        {err && <p className="text-sm text-rose-400">{err}</p>}
-        {ok && <p className="text-sm text-emerald-400">Tersimpan. Login ulang ya.</p>}
+        {err && <p className="text-sm text-danger">{err}</p>}
+        {ok && <p className="text-sm text-primary">Tersimpan. Login ulang ya.</p>}
         <div className="flex gap-2"><Button type="submit">Simpan</Button><Button variant="ghost" onClick={onClose}>Batal</Button></div>
       </form>
     </Card>

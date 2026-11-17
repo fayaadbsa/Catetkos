@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Kos Hangat: terang krem + terakota. Dark = versi cokelat hangat. Nilai = "R G B". */
+:root {
+  --bg: 250 245 236; --surface: 255 255 255; --soft: 243 235 220; --line: 231 220 199;
+  --tx: 43 33 24; --mut: 122 106 88; --primary: 194 86 58; --primary-fg: 255 255 255;
+  --accent: 31 111 107; --danger: 179 38 30; --warn: 160 100 20; --ok: 47 125 79; --shadow: 90 60 30;
+  color-scheme: light;
+}
+.dark {
+  --bg: 28 23 19; --surface: 38 32 25; --soft: 52 44 35; --line: 66 56 44;
+  --tx: 245 236 224; --mut: 168 151 127; --primary: 232 120 92; --primary-fg: 28 23 19;
+  --accent: 63 181 174; --danger: 255 123 108; --warn: 232 180 76; --ok: 111 207 151; --shadow: 0 0 0;
+  color-scheme: dark;
+}
+body { @apply bg-bg font-sans text-tx antialiased; }

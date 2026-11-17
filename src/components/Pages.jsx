@@ -5,16 +5,17 @@ import { api, rp, toast, today, cn } from '../lib/api.js';
 import { useList } from '../lib/useList.js';
 import Crud from './Crud.jsx';
 import PromoCalc from './PromoCalc.jsx';
+import { SEM } from '../lib/theme.js';
 import { Badge, Button, Input, Label, Modal } from './ui.jsx';
 
 const opts = (rows, l) => rows.map((r) => ({ v: r.id, l: l(r) }));
-const STATUS = { booked: ['Booked', '#fbbf24'], checked_in: ['Menginap', '#34d399'], checked_out: ['Selesai', '#a1a1aa'], cancelled: ['Batal', '#fb7185'] };
+const STATUS = { booked: ['Booked', SEM.warn], checked_in: ['Menginap', SEM.ok], checked_out: ['Selesai', SEM.mut], cancelled: ['Batal', SEM.danger] };
 
 export const Tabs = ({ tabs, value, onChange }) => (
-  <div className="flex gap-1 overflow-x-auto rounded-lg bg-zinc-900 p-1" role="tablist">
+  <div className="flex gap-1 overflow-x-auto rounded-xl bg-soft p-1" role="tablist">
     {tabs.map(([k, l]) => (
       <button key={k} role="tab" aria-selected={value === k} onClick={() => onChange(k)}
-        className={cn('whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-semibold', value === k ? 'bg-zinc-800 text-emerald-300' : 'text-zinc-400 hover:text-zinc-200')}>{l}</button>
+        className={cn('whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-semibold', value === k ? 'bg-surface text-primary shadow-card' : 'text-mut hover:text-tx')}>{l}</button>
     ))}
   </div>
 );
@@ -27,12 +28,12 @@ export function Rooms() {
       <Tabs tabs={[['rooms', 'Kamar'], ['types', 'Tipe kamar']]} value={tab} onChange={setTab} />
       {tab === 'types' ? (
         <Crud key="types" resource="room-types" title="Tipe kamar" onSaved={reloadTypes} empty="Belum ada tipe. Bikin dulu, baru kamar."
-          columns={[{ key: 'name', label: 'Tipe' }, { key: 'base_price', label: 'Harga dasar', fmt: (r) => rp(r.base_price) }, { key: 'capacity', label: 'Kapasitas' }, { key: 'room_count', label: 'Kamar aktif' }, { key: 'archived', label: 'Status', fmt: (r) => (r.archived ? <Badge>Arsip</Badge> : <Badge color="#34d399">Aktif</Badge>) }]}
+          columns={[{ key: 'name', label: 'Tipe' }, { key: 'base_price', label: 'Harga dasar', fmt: (r) => rp(r.base_price) }, { key: 'capacity', label: 'Kapasitas' }, { key: 'room_count', label: 'Kamar aktif' }, { key: 'archived', label: 'Status', fmt: (r) => (r.archived ? <Badge>Arsip</Badge> : <Badge color={SEM.ok}>Aktif</Badge>) }]}
           fields={[{ key: 'name', label: 'Nama tipe', req: 1 }, { key: 'base_price', label: 'Harga dasar / malam', type: 'number', req: 1 }, { key: 'capacity', label: 'Kapasitas', type: 'number' }, { key: 'archived', label: 'Arsip', type: 'bool' }]}
           defaults={{ capacity: 1 }} bare />
       ) : (
         <Crud key="rooms" resource="rooms" title="Kamar" empty={types.length ? 'Belum ada kamar.' : 'Bikin tipe kamar dulu di tab sebelah.'} canAdd={types.length > 0} bare
-          columns={[{ key: 'number', label: 'No' }, { key: 'type_name', label: 'Tipe' }, { key: 'price', label: 'Harga / malam', fmt: (r) => rp(r.price) + (r.price_override ? ' *' : '') }, { key: 'archived', label: 'Status', fmt: (r) => (r.archived ? <Badge>Arsip</Badge> : <Badge color="#34d399">Aktif</Badge>) }]}
+          columns={[{ key: 'number', label: 'No' }, { key: 'type_name', label: 'Tipe' }, { key: 'price', label: 'Harga / malam', fmt: (r) => rp(r.price) + (r.price_override ? ' *' : '') }, { key: 'archived', label: 'Status', fmt: (r) => (r.archived ? <Badge>Arsip</Badge> : <Badge color={SEM.ok}>Aktif</Badge>) }]}
           fields={[{ key: 'number', label: 'No kamar', req: 1 }, { key: 'room_type_id', label: 'Tipe', type: 'select', req: 1, options: opts(types, (t) => `${t.name} (${rp(t.base_price)})`) },
             { key: 'price_override', label: 'Harga khusus (opsional)', type: 'number', hint: () => 'Kosongkan buat pakai harga tipe. Tanda * di tabel = harga khusus.' }, { key: 'archived', label: 'Arsip', type: 'bool' }]} />
       )}
@@ -71,7 +72,7 @@ function PayModal({ b, onClose, onDone }) {
   return (
     <Modal title={`Bayar: ${b.guest_name} (kamar ${b.room_number})`} onClose={onClose}>
       <form onSubmit={go} className="grid gap-3 md:grid-cols-3">
-        <p className="col-span-full text-sm text-zinc-400">Total {rp(b.price_total)} · sudah {rp(b.paid)} · sisa {rp(due)}</p>
+        <p className="col-span-full text-sm text-mut">Total {rp(b.price_total)} · sudah {rp(b.paid)} · sisa {rp(due)}</p>
         <Label>Nominal<Input type="number" min="1" max={due} required value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} /></Label>
         <Label>Tanggal<Input type="date" required value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></Label>
         <Label>Metode<Input placeholder="transfer / tunai" value={f.method} onChange={(e) => setF({ ...f, method: e.target.value })} /></Label>
@@ -102,8 +103,8 @@ export function Bookings() {
         defaults={{ status: 'booked' }} onChange={quoteIfReady} onSaved={reloadGuests}
         columns={[{ key: 'guest_name', label: 'Tamu' }, { key: 'room_number', label: 'Kamar' }, { key: 'check_in', label: 'Check-in' }, { key: 'check_out', label: 'Check-out' },
           { key: 'price_total', label: 'Total', fmt: (r) => rp(r.price_total) + (r.promo_id ? ' · promo' : '') }, { key: 'status', label: 'Status', fmt: st },
-          { key: 'paid', label: 'Bayar', fmt: (r) => (r.paid >= r.price_total ? <Badge color="#34d399">Lunas</Badge> : <Badge color={r.paid ? '#fbbf24' : '#fb7185'}>{r.paid ? `DP ${rp(r.paid)}` : 'Belum'}</Badge>) }]}
-        actions={(r) => r.status !== 'cancelled' && r.paid < r.price_total && <Button variant="ghost" className="text-emerald-300" onClick={() => setPay(r)}><Wallet size={15} /> Bayar</Button>}
+          { key: 'paid', label: 'Bayar', fmt: (r) => (r.paid >= r.price_total ? <Badge color={SEM.ok}>Lunas</Badge> : <Badge color={r.paid ? SEM.warn : SEM.danger}>{r.paid ? `DP ${rp(r.paid)}` : 'Belum'}</Badge>) }]}
+        actions={(r) => r.status !== 'cancelled' && r.paid < r.price_total && <Button variant="ghost" className="text-primary" onClick={() => setPay(r)}><Wallet size={15} /> Bayar</Button>}
         fields={[
           { key: 'room_id', label: 'Kamar', type: 'select', req: 1, options: opts(active, (r) => `${r.number} · ${r.type_name}`) },
           { key: 'guest_id', label: 'Tamu', type: 'select', options: opts(guests, (g) => g.name), req: 0, hint: () => 'Pilih tamu lama, atau ketik nama baru di bawah' },

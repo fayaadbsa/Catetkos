@@ -16,7 +16,7 @@ const TABS = [
 export default function App() {
   const [auth, setAuth] = useState('loading'); // loading | out | in
   const [tab, setTab] = useState(() => location.hash.slice(1) || 'dash');
-  const [dark, setDark] = useState(() => localStorage.getItem('theme') !== 'light');
+  const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark');
   const [pwOpen, setPwOpen] = useState(false);
 
   useEffect(() => { api('/me').then(() => setAuth('in')).catch(() => setAuth('out')); }, []);
@@ -30,13 +30,13 @@ export default function App() {
   const logout = async () => { await api('/logout'); setAuth('out'); };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 md:flex">
+    <div className="min-h-screen bg-bg text-tx md:flex">
       <Toaster />
-      <aside className="hidden w-56 shrink-0 border-r border-zinc-800 p-4 md:block">
+      <aside className="hidden w-56 shrink-0 border-r border-line bg-surface p-4 md:block">
         <div className="mb-6"><Logo /></div>
         <nav className="space-y-1">
           {TABS.map(([k, l, Icon]) => (
-            <button key={k} onClick={() => setTab(k)} className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm ${tab === k ? 'bg-emerald-500/15 text-emerald-300' : 'text-zinc-400 hover:bg-zinc-800'}`}><Icon size={16} />{l}</button>
+            <button key={k} onClick={() => setTab(k)} className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold ${tab === k ? 'bg-primary/15 text-primary' : 'text-mut hover:bg-soft'}`}><Icon size={16} />{l}</button>
           ))}
         </nav>
         <div className="mt-6 flex gap-1">
@@ -53,9 +53,9 @@ export default function App() {
         <Page key={tab} />
         {pwOpen && <ChangePassword onDone={() => setAuth('out')} onClose={() => setPwOpen(false)} />}
       </main>
-      <nav className="fixed inset-x-0 bottom-0 flex justify-around border-t border-zinc-800 bg-zinc-950 p-1 md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 flex justify-around border-t border-line bg-surface p-1 md:hidden">
         {TABS.map(([k, l, Icon]) => (
-          <button key={k} onClick={() => setTab(k)} className={`flex flex-1 flex-col items-center gap-0.5 py-1 text-[10px] ${tab === k ? 'text-emerald-400' : 'text-zinc-500'}`}><Icon size={20} />{l}</button>
+          <button key={k} onClick={() => setTab(k)} className={`flex flex-1 flex-col items-center gap-0.5 py-1 text-[10px] ${tab === k ? 'font-bold text-primary' : 'text-mut'}`}><Icon size={20} />{l}</button>
         ))}
       </nav>
     </div>

@@ -1,12 +1,12 @@
-// Satu sumber warna buat chart & aksen. Ubah di sini, jangan hardcode di komponen.
+// Palet chart/badge (hex karena SVG attr tidak baca CSS var). Warna app lain ada di index.css. Netral di terang & gelap.
+export const SEM = { ok: '#3f9d68', warn: '#c4841f', danger: '#d2453a', mut: '#8a7a66', accent: '#1f8a84', violet: '#7a5ea8' };
 export const C = {
-  income: '#34d399',
-  expense: '#fb7185',
-  rooms: ['#34d399', '#22d3ee', '#a78bfa', '#fbbf24', '#f472b6', '#60a5fa', '#fb923c', '#a3e635'],
-  axis: '#a1a1aa',
-  grid: '#27272a',
-  tip: { background: '#09090b', border: '1px solid #3f3f46', borderRadius: 8, color: '#f4f4f5' },
+  income: SEM.ok,
+  expense: SEM.danger,
+  capital: SEM.violet,
+  rooms: ['#c2563a', '#1f8a84', '#e0a526', '#7a5ea8', '#4f8a3c', '#d9667d', '#4a78c2', '#b8743a'],
+  axis: SEM.mut,
+  grid: '#8a7a6633',
+  tip: { background: 'rgb(var(--surface))', border: '1px solid rgb(var(--line))', borderRadius: 12, color: 'rgb(var(--tx))' },
 };
-
-// Warna konsisten per index kamar/tipe.
 export const roomColor = (i) => C.rooms[i % C.rooms.length];
