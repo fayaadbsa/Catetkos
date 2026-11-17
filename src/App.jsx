@@ -6,6 +6,7 @@ import Crud from './components/Crud.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import PromoCalc from './components/PromoCalc.jsx';
 import { Button } from './components/ui.jsx';
+import Logo from './components/Logo.jsx';
 
 const TABS = [
   ['dash', 'Dashboard', 'LayoutDashboard'],
@@ -67,7 +68,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 md:flex">
       <aside className="hidden w-56 shrink-0 border-r border-zinc-800 p-4 md:block">
-        <div className="mb-6 text-lg font-bold text-emerald-400">Catetkos</div>
+        <div className="mb-6"><Logo /></div>
         <nav className="space-y-1">
           {TABS.map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)} className={`block w-full rounded-md px-3 py-2 text-left text-sm ${tab === k ? 'bg-emerald-500/15 text-emerald-300' : 'text-zinc-400 hover:bg-zinc-800'}`}>{l}</button>
