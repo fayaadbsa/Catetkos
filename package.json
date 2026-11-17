@@ -10,7 +10,8 @@
     "start": "node server/index.js",
     "seed": "node scripts/seed.js",
     "test": "node --test test/promo.test.js",
-    "seed:admin": "node scripts/seed-admin.js"
+    "seed:admin": "node scripts/seed-admin.js",
+    "set:password": "node scripts/set-password.js"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
