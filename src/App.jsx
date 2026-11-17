@@ -25,14 +25,11 @@ const bookingCols = [
 
 export default function App() {
   const [auth, setAuth] = useState('loading'); // loading | out | in
-  const [setup, setSetup] = useState(false);
   const [tab, setTab] = useState('dash');
   const [rooms, setRooms] = useState([]);
   const [dark, setDark] = useState(true);
 
   const boot = async () => {
-    const s = await api('/status');
-    setSetup(s.setup);
     try { await api('/me'); setAuth('in'); } catch { setAuth('out'); }
   };
   const loadRooms = () => api('/rooms').then(setRooms).catch(() => {});
@@ -41,7 +38,7 @@ export default function App() {
   useEffect(() => { document.documentElement.classList.toggle('dark', dark); }, [dark]);
 
   if (auth === 'loading') return null;
-  if (auth === 'out') return <Login setup={setup} onDone={() => { setAuth('in'); }} />;
+  if (auth === 'out') return <Login onDone={() => { setAuth('in'); }} />;
 
   const needSetup = rooms.length === 0 && tab !== 'promo';
   const cols = {

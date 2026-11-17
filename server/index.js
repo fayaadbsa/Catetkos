@@ -30,14 +30,7 @@ const cookie = (req, name) => (req.headers.cookie || '').split(/;\s*/).find((c) 
 
 async function api(req, res, url) {
   const p = url.pathname;
-  if (p === '/api/status') return send(res, 200, { setup: db.prepare('SELECT COUNT(*) c FROM users').get().c === 0, rooms: db.prepare('SELECT COUNT(*) c FROM rooms').get().c });
-  if (p === '/api/setup' && req.method === 'POST') {
-    if (db.prepare('SELECT COUNT(*) c FROM users').get().c) return send(res, 403, { error: 'Sudah di-setup' });
-    const b = await readBody(req);
-    if (!b.username || !b.password || b.password.length < 8) return send(res, 400, { error: 'Username wajib, password min 8 karakter' });
-    createUser(b.username, b.password);
-    return send(res, 201, { ok: true });
-  }
+  if (p === '/api/status') return send(res, 200, { ok: true });
   if (p === '/api/login' && req.method === 'POST') {
     const b = await readBody(req);
     const u = verify(String(b.username || ''), String(b.password || ''));
