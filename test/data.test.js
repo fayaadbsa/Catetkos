@@ -59,3 +59,9 @@ test('dashboard: arus kas, balik modal, piutang', () => {
   assert.equal(d.payback.capitalTotal, 10000000); assert.equal(d.payback.cumNet, 700000);
   assert.ok(d.receivable.total > 0);
 });
+
+test('create: field bool/default dikirim null (form UI) pakai default, bukan error', () => {
+  const id = create('room-types', { name: 'Null-safe', base_price: 500000, capacity: null, archived: null }).id;
+  const row = list('room-types').find((t) => t.id === id);
+  assert.equal(row.archived, 0); assert.equal(row.capacity, 1);
+});

@@ -113,6 +113,7 @@ function clean(def, body, cur = {}) {
   for (const [k, f] of Object.entries(def.fields)) {
     let v = body[k] !== undefined ? body[k] : k in cur ? cur[k] : f.def ?? null;
     if (v === '') v = null;
+    if (v === null && f.def !== undefined) v = f.def; // field kosong/nggak dikirim = default (bool Arsip, kapasitas)
     if (v === null) { if (f.req) bad(`${f.label} wajib diisi`); out[k] = null; continue; }
     if (f.type === 'text') { v = String(v).trim(); if (!v && f.req) bad(`${f.label} wajib diisi`); out[k] = v || null; }
     else if (f.type === 'int') { v = Number(v); if (!Number.isInteger(v) || v < (f.min ?? -Infinity)) bad(`${f.label} harus angka bulat${f.min !== undefined ? ` >= ${f.min}` : ''}`); out[k] = v; }

@@ -1,5 +1,5 @@
 // Palet chart/badge (hex karena SVG attr tidak baca CSS var). Warna app lain ada di index.css. Netral di terang & gelap.
-export const SEM = { ok: '#3f9d68', warn: '#c4841f', danger: '#d2453a', mut: '#8a7a66', accent: '#1f8a84', violet: '#7a5ea8' };
+export const SEM = { ok: '#3f9d68', warn: '#c4841f', danger: '#d2453a', mut: '#7a6a54', accent: '#1f8a84', violet: '#7a5ea8' };
 export const C = {
   income: SEM.ok,
   expense: SEM.danger,

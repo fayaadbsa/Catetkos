@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Legend, PieChart, Pie, Cell } from 'recharts';
 import { api, rp } from '../lib/api.js';
 import { C, SEM, roomColor } from '../lib/theme.js';
-import { Card, Stat } from './ui.jsx';
+import { Card, Stat, PageHeader } from './ui.jsx';
 
 const MON = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const mon = (m) => `${MON[+m.slice(5) - 1]} ${m.slice(2, 4)}`;
@@ -16,17 +16,18 @@ export default function Dashboard() {
   const types = Object.entries(d.byType).map(([name, v]) => ({ name, value: v.revenue }));
   return (
     <div className="space-y-4">
+      <PageHeader title="Dashboard" desc="Kondisi kos 30 hari terakhir." />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat color={C.rooms[0]} label="Okupansi 30 hari" value={`${d.occupancy}%`} hint={`${d.roomCount} kamar`} />
         <Stat color={C.rooms[3]} label="Omzet promo (30 hari)" value={rp(d.promoSplit.promo)} />
         <Stat color={C.rooms[1]} label="Omzet normal (30 hari)" value={rp(d.promoSplit.normal)} />
         <Stat color={SEM.danger} label="Belum dibayar" value={rp(d.receivable.total)} hint={`${d.receivable.count} booking`} />
         <Stat color={C.rooms[2]} label="Balik modal" value={pb.capitalTotal ? (pb.done ? 'Sudah!' : `${pb.pct}%`) : '-'}
-          hint={pb.monthsLeft ? `±${pb.monthsLeft} bulan lagi` : pb.capitalTotal ? `Modal ${rp(pb.capitalTotal)}` : 'Isi modal di Keuangan'} />
+          hint={pb.monthsLeft ? `±${pb.monthsLeft} bulan lagi` : pb.capitalTotal ? `Modal ${rp(pb.capitalTotal)}` : 'Isi modal di menu Modal'} />
       </div>
 
       <Card>
-        <h3 className="mb-3 font-semibold">Lagi ngapain kamarnya</h3>
+        <h3 className="mb-3 text-base font-bold">Lagi ngapain kamarnya</h3>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           {d.emptyRooms.map((r, i) => {
             const col = roomColor(i);
@@ -48,7 +49,7 @@ export default function Dashboard() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <h3 className="mb-2 font-semibold">Duit masuk vs keluar (6 bulan)</h3>
+          <h3 className="mb-2 text-base font-bold">Duit masuk vs keluar (6 bulan)</h3>
           <div className="h-64">
             <ResponsiveContainer>
               <BarChart data={d.cashflow} barGap={4}>
@@ -66,7 +67,7 @@ export default function Dashboard() {
         </Card>
 
         <Card>
-          <h3 className="mb-2 font-semibold">Omzet per tipe kamar</h3>
+          <h3 className="mb-2 text-base font-bold">Omzet per tipe kamar</h3>
           {types.length ? (
             <div className="h-64">
               <ResponsiveContainer>
@@ -84,7 +85,7 @@ export default function Dashboard() {
       </div>
 
       <Card>
-        <h3 className="mb-2 font-semibold">Biaya per kategori (30 hari)</h3>
+        <h3 className="mb-2 text-base font-bold">Biaya per kategori (30 hari)</h3>
         {d.expenseByCat.length ? (
           <div className="h-56"><ResponsiveContainer><BarChart data={d.expenseByCat} layout="vertical" margin={{ left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={C.grid} horizontal={false} />
@@ -96,7 +97,7 @@ export default function Dashboard() {
       </Card>
 
       <Card>
-        <h3 className="mb-2 font-semibold">Bisik-bisik dashboard</h3>
+        <h3 className="mb-2 text-base font-bold">Bisik-bisik dashboard</h3>
         <ul className="space-y-2 text-sm text-tx">
           {d.insights.map((x, i) => (
             <li key={i} className="flex gap-2">
