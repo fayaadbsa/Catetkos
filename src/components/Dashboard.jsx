@@ -17,11 +17,12 @@ export default function Dashboard() {
   return (
     <div className="space-y-4">
       <PageHeader title="Dashboard" desc="Kondisi kos 30 hari terakhir." />
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         <Stat color={C.rooms[0]} label="Okupansi 30 hari" value={`${d.occupancy}%`} hint={`${d.roomCount} kamar`} />
         <Stat color={C.rooms[3]} label="Omzet promo (30 hari)" value={rp(d.promoSplit.promo)} />
         <Stat color={C.rooms[1]} label="Omzet normal (30 hari)" value={rp(d.promoSplit.normal)} />
         <Stat color={SEM.danger} label="Belum dibayar" value={rp(d.receivable.total)} hint={`${d.receivable.count} booking`} />
+        <Stat color={C.rooms[4]} label="Deposit dipegang" value={rp(d.depositHeld)} hint="Uang titipan, bukan omzet" />
         <Stat color={C.rooms[2]} label="Balik modal" value={pb.capitalTotal ? (pb.done ? 'Sudah!' : `${pb.pct}%`) : '-'}
           hint={pb.monthsLeft ? `±${pb.monthsLeft} bulan lagi` : pb.capitalTotal ? `Modal ${rp(pb.capitalTotal)}` : 'Isi modal di menu Modal'} />
       </div>

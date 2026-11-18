@@ -11,13 +11,13 @@ export default function PromoCalc() {
       <div><h2 className="text-lg font-bold">Kalkulator promo</h2><p className="text-sm text-mut">Cek dulu promonya masih untung atau nggak.</p></div>
       <Card className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {Object.keys(f).map((k) => (
-          <Label key={k}>{{ normal: 'Harga normal', promo: 'Harga promo', varPerNight: 'Biaya variabel/malam', emptyNights: 'Malam kosong (rata2)' }[k]}
+          <Label key={k}>{{ normal: 'Harga normal / bulan', promo: 'Harga promo / bulan', varPerNight: 'Biaya variabel / bulan', emptyNights: 'Hari kosong (rata2)' }[k]}
             <Input type="number" value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} /></Label>
         ))}
       </Card>
       <Card>
         <p className={r.worth ? 'font-semibold text-ok' : 'font-semibold text-warn'}>{r.verdict}</p>
-        <p className="mt-2 text-sm text-mut">Diskon {r.discount}% · margin/malam {rp(r.margin)}</p>
+        <p className="mt-2 text-sm text-mut">Diskon {r.discount}% · margin/bulan {rp(r.margin)}</p>
       </Card>
     </div>
   );

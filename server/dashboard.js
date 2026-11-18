@@ -67,6 +67,8 @@ export function dashboard(today = iso(new Date())) {
     FROM bookings b WHERE b.status!='cancelled'`).all().filter((b) => b.due > 0);
   const receivable = { total: unpaid.reduce((a, b) => a + b.due, 0), count: unpaid.length, overdue: unpaid.filter((b) => b.check_in <= today).length };
 
+  const depositHeld = sum('SELECT COALESCE(SUM(deposit),0) s FROM bookings WHERE deposit_paid_date IS NOT NULL AND deposit_returned_date IS NULL');
+
   const expenseByCat = db.prepare("SELECT c.name, SUM(t.amount) value FROM transactions t JOIN categories c ON c.id=t.category_id WHERE c.kind='expense' AND t.date>=? AND t.date<? GROUP BY c.id ORDER BY value DESC").all(wStart, wEnd);
 
   const insights = [];
@@ -80,5 +82,5 @@ export function dashboard(today = iso(new Date())) {
   if (promoSplit.promo > 0 && promoSplit.promo > promoSplit.normal) insights.push('Mayoritas omzet 30 hari datang dari promo. Pastikan margin masih aman.');
   if (!insights.length) insights.push('Aman. Belum ada sinyal bahaya.');
 
-  return { today, occupancy, roomCount: rooms.length, byType, promoSplit, emptyRooms, cashflow, expenseByCat, payback, receivable, insights };
+  return { today, occupancy, roomCount: rooms.length, byType, promoSplit, emptyRooms, cashflow, expenseByCat, payback, receivable, depositHeld, insights };
 }

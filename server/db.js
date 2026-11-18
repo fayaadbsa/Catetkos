@@ -59,6 +59,12 @@ const MIGRATIONS = [
     ('expense','Listrik'),('expense','Air'),('expense','Internet'),('expense','Kebersihan'),('expense','Perawatan'),('expense','Gaji'),('expense','Lainnya'),
     ('capital','Bangunan'),('capital','Furnitur'),('capital','Elektronik'),('capital','Lainnya');
   `,
+  // v2: booking per bulan + deposit (uang titipan, bukan omzet, jadi di luar transactions).
+  `
+  ALTER TABLE bookings ADD COLUMN deposit INTEGER NOT NULL DEFAULT 0 CHECK(deposit >= 0);
+  ALTER TABLE bookings ADD COLUMN deposit_paid_date TEXT;
+  ALTER TABLE bookings ADD COLUMN deposit_returned_date TEXT;
+  `,
 ];
 
 const ver = db.prepare('PRAGMA user_version').get().user_version;

@@ -3,7 +3,8 @@ import { LayoutDashboard, CalendarCheck, BedDouble, Users, Tag, LogOut, UserCirc
 import { api, cn } from './lib/api.js';
 import Login from './components/Login.jsx';
 import Dashboard from './components/Dashboard.jsx';
-import { Bookings, Rooms, RoomTypes, Guests, Promos, Categories, Income, Expense, Capital } from './components/Pages.jsx';
+import Bookings from './components/Bookings.jsx';
+import { Rooms, RoomTypes, Guests, Promos, Categories, Income, Expense, Capital } from './components/Pages.jsx';
 import { Button, Toaster } from './components/ui.jsx';
 import Logo from './components/Logo.jsx';
 import Account from './components/ChangePassword.jsx';

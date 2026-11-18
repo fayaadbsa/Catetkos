@@ -3,7 +3,7 @@ import { readFileSync, existsSync, statSync } from 'node:fs';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { createUser, verify, newSession, sessionUser, dropSession, changePassword } from './auth.js';
 import { dashboard } from './dashboard.js';
-import { isResource, list, create, update, remove, quote, HttpError } from './resources.js';
+import { isResource, list, create, createBatch, payBooking, update, remove, quoteMonths, HttpError } from './resources.js';
 
 const PORT = process.env.PORT || 3005;
 const DIST = 'dist';
@@ -47,7 +47,10 @@ async function api(req, res, url) {
     return send(res, 200, { ok: true }, { 'Set-Cookie': 'sid=; HttpOnly; Path=/; Max-Age=0' });
   }
 
-  if (p === '/api/quote') return send(res, 200, quote(Number(url.searchParams.get('room_id')), url.searchParams.get('check_in'), url.searchParams.get('check_out')));
+  if (p === '/api/quote') return send(res, 200, quoteMonths(Number(url.searchParams.get('room_id')), url.searchParams.get('check_in'), url.searchParams.get('months')));
+  if (p === '/api/bookings/batch' && req.method === 'POST') return send(res, 201, createBatch(await readBody(req)));
+  const pay = p.match(/^\/api\/bookings\/(\d+)\/pay$/);
+  if (pay && req.method === 'POST') return send(res, 200, payBooking(Number(pay[1]), await readBody(req)));
   const m = p.match(/^\/api\/([a-z-]+)(?:\/(\d+))?$/);
   if (!m || !isResource(m[1])) return send(res, 404, { error: 'Not found' });
   const [, t, id] = m;
