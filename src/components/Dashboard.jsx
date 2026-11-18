@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Legend, PieChart, Pie, Cell } from 'recharts';
 import { api, rp } from '../lib/api.js';
 import { C, SEM, roomColor } from '../lib/theme.js';
+import { AlertOctagon, AlertTriangle, Info, CheckCircle2 } from 'lucide-react';
 import { Card, Stat, PageHeader } from './ui.jsx';
 
 const MON = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
@@ -13,7 +14,9 @@ export default function Dashboard() {
   useEffect(() => { api('/dashboard').then(setD).catch(() => {}); }, []);
   if (!d) return <p className="text-mut">Lagi ngitung duit...</p>;
   const pb = d.payback;
+  const LV = { urgent: [AlertOctagon, 'text-danger'], warn: [AlertTriangle, 'text-warn'], info: [Info, 'text-mut'], ok: [CheckCircle2, 'text-ok'] };
   const types = Object.entries(d.byType).map(([name, v]) => ({ name, value: v.revenue }));
+  const typeTotal = types.reduce((a, t) => a + t.value, 0);
   return (
     <div className="space-y-4">
       <PageHeader title="Dashboard" desc="Kondisi kos 30 hari terakhir." />
@@ -76,8 +79,9 @@ export default function Dashboard() {
                   <Pie data={types} dataKey="value" nameKey="name" innerRadius={50} outerRadius={85} paddingAngle={3} stroke="none">
                     {types.map((t, i) => <Cell key={t.name} fill={roomColor(i)} />)}
                   </Pie>
+                  <text x="50%" y="42%" textAnchor="middle" dominantBaseline="middle" fill="rgb(var(--tx))" fontWeight="800" fontSize="15">{short(typeTotal)}</text>
                   <Tooltip formatter={(v) => rp(v)} contentStyle={C.tip} />
-                  <Legend formatter={(v) => <span style={{ color: 'rgb(var(--tx))' }}>{v}</span>} />
+                  <Legend formatter={(v) => { const t = types.find((x) => x.name === v); return <span style={{ color: 'rgb(var(--tx))' }}>{v}{t && typeTotal ? ` · ${Math.round((t.value / typeTotal) * 100)}%` : ''}</span>; }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -100,12 +104,10 @@ export default function Dashboard() {
       <Card>
         <h3 className="mb-2 text-base font-bold">Bisik-bisik dashboard</h3>
         <ul className="space-y-2 text-sm text-tx">
-          {d.insights.map((x, i) => (
-            <li key={i} className="flex gap-2">
-              <span className="mt-1.5 size-2 shrink-0 rounded-full" style={{ background: roomColor(i) }} />
-              {x}
-            </li>
-          ))}
+          {d.insights.map((x, i) => {
+            const [Icon, cls] = LV[x.level] || LV.info;
+            return <li key={i} className="flex gap-2"><Icon size={16} className={`mt-0.5 shrink-0 ${cls}`} aria-hidden />{x.text}</li>;
+          })}
         </ul>
       </Card>
     </div>

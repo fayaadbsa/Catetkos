@@ -74,13 +74,13 @@ export function dashboard(today = iso(new Date())) {
   const insights = [];
   for (const r of emptyRooms) {
     if (r.occupied || (r.upcoming && diffDays(today, r.upcoming) <= 3)) continue;
-    if (r.emptyDays === null) insights.push(`Kamar ${r.number} (${r.type}) belum pernah disewa.`);
-    else if (r.emptyDays >= 3) insights.push(`Kamar ${r.number} (${r.type}) kosong ${r.emptyDays} hari. Pertimbangkan promo.`);
+    if (r.emptyDays === null) insights.push({ level: 'info', text: `Kamar ${r.number} (${r.type}) belum pernah disewa.` });
+    else if (r.emptyDays >= 3) insights.push({ level: 'warn', text: `Kamar ${r.number} (${r.type}) kosong ${r.emptyDays} hari. Pertimbangkan promo.` });
   }
-  if (rooms.length && occupancy < 50) insights.push(`Okupansi 30 hari cuma ${occupancy}%. Cek harga dan promo.`);
-  if (receivable.overdue) insights.push(`${receivable.overdue} booking belum lunas padahal sudah check-in. Tagih.`);
-  if (promoSplit.promo > 0 && promoSplit.promo > promoSplit.normal) insights.push('Mayoritas omzet 30 hari datang dari promo. Pastikan margin masih aman.');
-  if (!insights.length) insights.push('Aman. Belum ada sinyal bahaya.');
+  if (rooms.length && occupancy < 50) insights.push({ level: 'warn', text: `Okupansi 30 hari cuma ${occupancy}%. Cek harga dan promo.` });
+  if (receivable.overdue) insights.unshift({ level: 'urgent', text: `${receivable.overdue} booking belum lunas padahal sudah masuk. Tagih.` });
+  if (promoSplit.promo > 0 && promoSplit.promo > promoSplit.normal) insights.push({ level: 'warn', text: 'Mayoritas omzet 30 hari datang dari promo. Pastikan margin masih aman.' });
+  if (!insights.length) insights.push({ level: 'ok', text: 'Aman. Belum ada sinyal bahaya.' });
 
   return { today, occupancy, roomCount: rooms.length, byType, promoSplit, emptyRooms, cashflow, expenseByCat, payback, receivable, depositHeld, insights };
 }
