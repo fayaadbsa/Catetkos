@@ -4,17 +4,20 @@
 
 /* Kos Hangat: terang krem + terakota. Dark = versi cokelat hangat. Nilai = "R G B". */
 :root {
-  --bg: 247 241 230; --surface: 255 253 249; --soft: 238 229 212; --line: 205 189 162;
-  --tx: 33 25 17; --mut: 99 83 64; --primary: 168 62 36; --primary-fg: 255 255 255;
+  --bg: 243 236 223; --surface: 255 255 255; --soft: 238 229 212; --line: 205 189 162;
+  --tx: 33 25 17; --mut: 92 77 59; --primary: 168 62 36; --primary-fg: 255 255 255;
   --accent: 20 92 88; --danger: 166 28 22; --warn: 133 78 8; --ok: 30 104 60; --shadow: 90 60 30;
   color-scheme: light;
 }
 .dark {
-  --bg: 28 23 19; --surface: 38 32 25; --soft: 52 44 35; --line: 84 72 57;
-  --tx: 247 239 228; --mut: 185 169 146; --primary: 240 133 105; --primary-fg: 28 23 19;
+  --bg: 28 23 19; --surface: 38 32 25; --soft: 52 44 35; --line: 98 85 68;
+  --tx: 247 239 228; --mut: 196 181 159; --primary: 240 133 105; --primary-fg: 28 23 19;
   --accent: 63 181 174; --danger: 255 128 114; --warn: 236 188 90; --ok: 115 212 156; --shadow: 0 0 0;
   color-scheme: dark;
 }
 body { @apply bg-bg font-sans text-tx antialiased; }
 
 :focus-visible { outline: 2px solid rgb(var(--primary)); outline-offset: 2px; }
+
+/* scrollbar tipis, ikut tema */
+* { scrollbar-width: thin; scrollbar-color: rgb(var(--line)) transparent; }

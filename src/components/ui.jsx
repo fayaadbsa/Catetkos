@@ -4,22 +4,22 @@ import { X } from 'lucide-react';
 import { cn } from '../lib/api.js';
 export const Card = ({ className, ...p }) => <div className={cn('rounded-2xl border border-line bg-surface p-4 shadow-card', className)} {...p} />;
 export const Button = ({ variant = 'primary', className, ...p }) => (
-  <button className={cn('inline-flex items-center justify-center gap-1 rounded-xl px-3.5 py-2 text-sm font-semibold transition disabled:opacity-50',
+  <button className={cn('inline-flex items-center justify-center gap-1 rounded-xl px-3 py-2 text-sm font-semibold transition disabled:opacity-50',
     variant === 'primary' && 'bg-primary text-primary-fg hover:opacity-90',
     variant === 'ghost' && 'text-tx hover:bg-soft',
-    variant === 'outline' && 'border border-line text-tx hover:bg-soft',
+    variant === 'outline' && 'border border-mut/60 text-tx hover:bg-soft',
     variant === 'danger' && 'bg-danger text-white hover:opacity-90', className)} {...p} />
 );
-const field = 'w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-tx outline-none placeholder:text-mut focus:border-primary focus:ring-2 focus:ring-primary/20';
+const field = 'w-full rounded-xl border border-mut/50 bg-surface px-3 py-2 text-sm text-tx outline-none placeholder:text-mut focus:border-primary focus:ring-2 focus:ring-primary/20';
 export const Input = ({ className, ...p }) => <input className={cn(field, className)} {...p} />;
 export const Select = ({ className, children, ...p }) => <select className={cn(field, className)} {...p}>{children}</select>;
 export const Label = ({ children, ...p }) => <label className="block text-sm font-medium text-tx" {...p}><span className="mb-1 block">{children}</span></label>;
 export const Stat = ({ label, value, hint, color = '#c2563a' }) => (
   <Card className="relative overflow-hidden">
     <div className="absolute inset-x-0 top-0 h-1.5" style={{ background: color }} />
-    <div className="text-xs font-semibold text-mut">{label}</div>
-    <div className="mt-1 whitespace-nowrap text-xl font-extrabold text-tx lg:text-lg xl:text-xl">{value}</div>
-    {hint && <div className="mt-1 text-xs text-mut">{hint}</div>}
+    <div className="text-sm font-semibold text-mut">{label}</div>
+    <div className="mt-1 whitespace-nowrap text-xl font-extrabold text-tx">{value}</div>
+    {hint && <div className="mt-1 text-sm text-mut">{hint}</div>}
   </Card>
 );
 export const PageHeader = ({ title, desc, children }) => (

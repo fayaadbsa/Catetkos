@@ -38,14 +38,14 @@ export default function App() {
   const Page = cur[0] === 'account' ? () => <Account me={me} dark={dark} setDark={setDark} onLogout={logout} /> : cur[3];
 
   const navList = (
-    <nav className="space-y-5" aria-label="Menu utama">
+    <nav className="space-y-4" aria-label="Menu utama">
       {NAV.map(([group, items]) => (
         <div key={group}>
-          <div className="mb-1 px-3 text-[11px] font-bold uppercase tracking-wider text-mut">{group}</div>
+          <div className="mb-1 px-3 text-xs font-bold uppercase tracking-wider text-mut">{group}</div>
           <div className="space-y-0.5">
             {items.map(([k, l, Icon]) => (
               <button key={k} onClick={() => setTab(k)} aria-current={cur[0] === k ? 'page' : undefined}
-                className={cn('flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-semibold transition', cur[0] === k ? 'bg-primary text-primary-fg' : 'text-tx hover:bg-soft')}><Icon size={16} />{l}</button>
+                className={cn('flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-left text-sm font-semibold transition', cur[0] === k ? 'bg-primary text-primary-fg' : 'text-tx hover:bg-soft')}><Icon size={16} />{l}</button>
             ))}
           </div>
         </div>
@@ -65,9 +65,10 @@ export default function App() {
   return (
     <div className="min-h-screen bg-bg text-tx md:flex">
       <Toaster />
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col justify-between overflow-y-auto border-r border-line bg-surface p-4 md:flex">
-        <div><div className="mb-6 px-1"><Logo /></div>{navList}</div>
-        {tools}
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line bg-surface p-4 md:flex">
+        <div className="mb-5 px-1"><Logo /></div>
+        <div className="min-h-0 flex-1 overflow-y-auto">{navList}</div>
+        <div className="mt-3">{tools}</div>
       </aside>
 
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-surface px-4 py-2 md:hidden">
@@ -76,12 +77,10 @@ export default function App() {
       </header>
       {menu && (
         <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onMouseDown={(e) => e.target === e.currentTarget && setMenu(false)}>
-          <div className="ml-auto flex h-full w-72 max-w-[85%] flex-col justify-between overflow-y-auto bg-surface p-4">
-            <div>
-              <div className="mb-4 flex items-center justify-between"><Logo size={26} /><Button variant="ghost" aria-label="Tutup menu" onClick={() => setMenu(false)}><X size={18} /></Button></div>
-              {navList}
-            </div>
-            {tools}
+          <div className="ml-auto flex h-full w-72 max-w-[85%] flex-col bg-surface p-4">
+            <div className="mb-4 flex items-center justify-between"><Logo size={26} /><Button variant="ghost" aria-label="Tutup menu" onClick={() => setMenu(false)}><X size={18} /></Button></div>
+            <div className="min-h-0 flex-1 overflow-y-auto">{navList}</div>
+            <div className="mt-3">{tools}</div>
           </div>
         </div>
       )}
@@ -94,7 +93,7 @@ export default function App() {
         {[...BOTTOM.map((k) => ITEMS.find((i) => i[0] === k)), null].map((it) => {
           const [k, l, Icon] = it || ['menu', 'Menu', Menu];
           const on = it && cur[0] === k;
-          return <button key={k} onClick={() => (it ? setTab(k) : setMenu(true))} className={cn('flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px]', on ? 'font-bold text-primary' : 'text-mut')}><Icon size={20} />{l}</button>;
+          return <button key={k} onClick={() => (it ? setTab(k) : setMenu(true))} className={cn('flex flex-1 flex-col items-center gap-0.5 py-1 text-xs', on ? 'font-bold text-primary' : 'text-mut')}><Icon size={20} />{l}</button>;
         })}
       </nav>
     </div>

@@ -6,7 +6,7 @@ import { Card, Stat, PageHeader } from './ui.jsx';
 
 const MON = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const mon = (m) => `${MON[+m.slice(5) - 1]} ${m.slice(2, 4)}`;
-const short = (v) => (Math.abs(v) >= 1e6 ? `${+(v / 1e6).toFixed(1)}jt` : `${Math.round(v / 1e3)}rb`);
+const short = (v) => (Math.abs(v) >= 1e6 ? `${String(+(v / 1e6).toFixed(1)).replace('.', ',')}jt` : `${Math.round(v / 1e3)}rb`);
 
 export default function Dashboard() {
   const [d, setD] = useState(null);
@@ -17,29 +17,29 @@ export default function Dashboard() {
   return (
     <div className="space-y-4">
       <PageHeader title="Dashboard" desc="Kondisi kos 30 hari terakhir." />
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
-        <Stat color={C.rooms[0]} label="Okupansi 30 hari" value={`${d.occupancy}%`} hint={`${d.roomCount} kamar`} />
-        <Stat color={C.rooms[3]} label="Omzet promo (30 hari)" value={rp(d.promoSplit.promo)} />
-        <Stat color={C.rooms[1]} label="Omzet normal (30 hari)" value={rp(d.promoSplit.normal)} />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
+        <Stat color={C.rooms[0]} label="Okupansi" value={`${d.occupancy}%`} hint={`dari ${d.roomCount} kamar aktif`} />
+        <Stat color={C.rooms[3]} label="Omzet promo" value={rp(d.promoSplit.promo)} />
+        <Stat color={C.rooms[1]} label="Omzet normal" value={rp(d.promoSplit.normal)} />
         <Stat color={SEM.danger} label="Belum dibayar" value={rp(d.receivable.total)} hint={`${d.receivable.count} booking`} />
-        <Stat color={C.rooms[4]} label="Deposit dipegang" value={rp(d.depositHeld)} hint="Uang titipan, bukan omzet" />
+        <Stat color={C.rooms[4]} label="Deposit dipegang" value={rp(d.depositHeld)} hint="Titipan, bukan omzet" />
         <Stat color={C.rooms[2]} label="Balik modal" value={pb.capitalTotal ? (pb.done ? 'Sudah!' : `${pb.pct}%`) : '-'}
           hint={pb.monthsLeft ? `±${pb.monthsLeft} bulan lagi` : pb.capitalTotal ? `Modal ${rp(pb.capitalTotal)}` : 'Isi modal di menu Modal'} />
       </div>
 
       <Card>
-        <h3 className="mb-3 text-base font-bold">Lagi ngapain kamarnya</h3>
+        <h3 className="text-base font-bold">Status kamar</h3>
+        <p className="mb-3 text-sm text-mut">Hijau = ada penghuni. Abu = kosong.</p>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-          {d.emptyRooms.map((r, i) => {
-            const col = roomColor(i);
+          {d.emptyRooms.map((r) => {
             return (
               <div key={r.id} className="rounded-xl border p-3"
-                style={r.occupied ? { borderColor: col, background: col + '26' } : { borderColor: 'rgb(var(--mut) / .5)', borderStyle: 'dashed' }}>
+                style={r.occupied ? { borderColor: SEM.ok, background: SEM.ok + '1f' } : { borderColor: 'rgb(var(--line))', background: 'rgb(var(--soft) / .6)' }}>
                 <div className="flex items-center gap-2 text-sm font-semibold">
-                  <span className="size-2.5 rounded-full" style={{ background: col }} />
+                  <span className="size-2.5 rounded-full" style={{ background: r.occupied ? SEM.ok : SEM.mut }} aria-hidden />
                   {r.number} · {r.type}
                 </div>
-                <div className="mt-1 text-xs text-mut">
+                <div className="mt-1 text-sm text-mut">
                   {r.occupied ? 'Ada penghuni, aman' : r.emptyDays === null ? 'Belum pernah laku, sabar' : `Nganggur ${Math.round(r.emptyDays)} hari`}{!r.occupied && r.upcoming ? ` · booking ${r.upcoming}` : ''}
                 </div>
               </div>
@@ -58,7 +58,7 @@ export default function Dashboard() {
                 <XAxis dataKey="month" stroke={C.axis} tickFormatter={mon} tickMargin={8} />
                 <YAxis stroke={C.axis} tickFormatter={short} />
                 <Tooltip formatter={(v) => rp(v)} contentStyle={C.tip} cursor={{ fill: '#8a7a6622' }} />
-                <Legend />
+                <Legend formatter={(v) => <span style={{ color: 'rgb(var(--tx))' }}>{v}</span>} />
                 <Bar isAnimationActive={false} dataKey="income" name="Pemasukan" fill={C.income} radius={[6, 6, 0, 0]} />
                 <Bar isAnimationActive={false} dataKey="expense" name="Pengeluaran" fill={C.expense} radius={[6, 6, 0, 0]} />
                 {d.cashflow.some((m) => m.capital > 0) && <Bar isAnimationActive={false} dataKey="capital" name="Modal" fill={C.capital} radius={[6, 6, 0, 0]} />}
@@ -77,7 +77,7 @@ export default function Dashboard() {
                     {types.map((t, i) => <Cell key={t.name} fill={roomColor(i)} />)}
                   </Pie>
                   <Tooltip formatter={(v) => rp(v)} contentStyle={C.tip} />
-                  <Legend />
+                  <Legend formatter={(v) => <span style={{ color: 'rgb(var(--tx))' }}>{v}</span>} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

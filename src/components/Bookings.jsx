@@ -126,12 +126,12 @@ export default function Bookings() {
   const rent = (b) => {
     if (b.status === 'cancelled') return <span className="text-mut">-</span>;
     if (b.paid >= b.price_total) return <button title="Klik untuk batalkan pembayaran" onClick={() => confirm('Batalkan pembayaran bulan ini?') && run(() => api(`/bookings/${b.id}/pay`, { body: { paid: false } }), 'Pembayaran dibatalkan')}><Badge color={SEM.ok}>Lunas · {dm(b.paid_date)}</Badge></button>;
-    return <div className="flex items-center gap-2">{b.paid > 0 && <Badge color={SEM.warn}>Kurang {rp(b.price_total - b.paid)}</Badge>}<Button variant="outline" className="py-1" onClick={() => setDlg({ k: 'rent', b })}>Tandai lunas</Button></div>;
+    return <div className="flex flex-col items-start gap-1">{b.paid > 0 && <Badge color={SEM.warn}>Kurang {rp(b.price_total - b.paid)}</Badge>}<Button variant="outline" className="py-1" onClick={() => setDlg({ k: 'rent', b })}>Tandai lunas</Button></div>;
   };
   const dep = (b) => {
     if (!b.deposit) return <span className="text-mut">-</span>;
     if (b.deposit_returned_date) return <Badge>Dikembalikan · {dm(b.deposit_returned_date)}</Badge>;
-    if (b.deposit_paid_date) return <div className="flex items-center gap-2"><Badge color={SEM.ok}>{rp(b.deposit)} dipegang</Badge>{b.status === 'checked_out' && <Button variant="outline" className="py-1" onClick={() => setDlg({ k: 'ret', b })}>Kembalikan</Button>}</div>;
+    if (b.deposit_paid_date) return <div className="flex flex-col items-start gap-1"><Badge color={SEM.ok}>{rp(b.deposit)} dipegang</Badge>{b.status === 'checked_out' && <Button variant="outline" className="py-1" onClick={() => setDlg({ k: 'ret', b })}>Kembalikan</Button>}</div>;
     return <Button variant="outline" className="py-1" onClick={() => setDlg({ k: 'dep', b })}>Terima {rp(b.deposit)}</Button>;
   };
 
@@ -147,7 +147,7 @@ export default function Bookings() {
       </div>
       <Card className="overflow-x-auto p-0">
         <table className="w-full text-sm">
-          <thead className="text-left text-xs font-bold uppercase tracking-wide text-mut"><tr>{['Tamu', 'Kamar', 'Periode', 'Tagihan', 'Sewa', 'Deposit', ''].map((h) => <th key={h} className="whitespace-nowrap p-3">{h}</th>)}</tr></thead>
+          <thead className="text-left text-xs font-bold uppercase tracking-wide text-mut"><tr>{['Tamu', 'Kamar', 'Periode', 'Tagihan', 'Sewa', 'Deposit', 'Aksi'].map((h) => <th key={h} className={cn('whitespace-nowrap p-3', h === 'Aksi' && 'text-right')}>{h}</th>)}</tr></thead>
           <tbody>
             {shown.map((b) => (
               <tr key={b.id} className="border-t border-line hover:bg-soft/60">
@@ -158,7 +158,7 @@ export default function Bookings() {
                 <td className="whitespace-nowrap p-3">{rent(b)}</td>
                 <td className="whitespace-nowrap p-3">{dep(b)}</td>
                 <td className="whitespace-nowrap p-3 text-right">
-                  {b.status !== 'cancelled' && <Button variant="ghost" className="text-primary" onClick={() => extend(b)} title="Tambah 1 bulan dari tgl keluar"><CalendarPlus size={15} /> +1 bulan</Button>}
+                  {b.status !== 'cancelled' && <Button variant="ghost" className="text-primary" onClick={() => extend(b)} title="Perpanjang 1 bulan dari tgl keluar" aria-label="Perpanjang 1 bulan"><CalendarPlus size={15} /> +1 bln</Button>}
                   <Button variant="ghost" aria-label="Edit" title="Edit" onClick={() => setDlg({ k: 'edit', b })}><Pencil size={15} /></Button>
                   <Button variant="ghost" aria-label="Hapus" title="Hapus" className="text-danger" onClick={() => del(b)}><Trash2 size={15} /></Button>
                 </td>
