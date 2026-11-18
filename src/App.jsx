@@ -41,11 +41,11 @@ export default function App() {
     <nav className="space-y-4" aria-label="Menu utama">
       {NAV.map(([group, items]) => (
         <div key={group}>
-          <div className="mb-1 px-3 text-xs font-bold uppercase tracking-wider text-mut">{group}</div>
+          <div className="mb-1 px-3 text-xs font-medium text-mut">{group}</div>
           <div className="space-y-0.5">
             {items.map(([k, l, Icon]) => (
               <button key={k} onClick={() => setTab(k)} aria-current={cur[0] === k ? 'page' : undefined}
-                className={cn('flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-left text-sm font-semibold transition', cur[0] === k ? 'bg-primary text-primary-fg' : 'text-tx hover:bg-soft')}><Icon size={16} />{l}</button>
+                className={cn('flex w-full items-center gap-2.5 rounded-md px-3 py-1.5 text-left text-sm font-medium transition', cur[0] === k ? 'bg-soft text-tx' : 'text-mut hover:bg-soft hover:text-tx')}><Icon size={16} />{l}</button>
             ))}
           </div>
         </div>
@@ -54,11 +54,11 @@ export default function App() {
   );
   const tools = (
     <div className="flex items-center gap-2 border-t border-line pt-3">
-      <button onClick={() => setTab('account')} className="flex min-w-0 flex-1 items-center gap-2 rounded-xl p-1.5 text-left hover:bg-soft" aria-label="Buka pengaturan akun">
-        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-sm font-bold uppercase text-primary-fg">{(me?.username || '?')[0]}</span>
-        <span className="min-w-0"><span className="block truncate text-sm font-semibold">{me?.username}</span><span className="block text-xs text-mut">Pengaturan akun</span></span>
+      <button onClick={() => setTab('account')} className="flex min-w-0 flex-1 items-center gap-2 rounded-md p-1.5 text-left hover:bg-soft" aria-label="Buka pengaturan akun">
+        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-sm font-semibold uppercase text-primary-fg">{(me?.username || '?')[0]}</span>
+        <span className="min-w-0"><span className="block truncate text-sm font-medium">{me?.username}</span><span className="block text-xs text-mut">Pengaturan akun</span></span>
       </button>
-      <button onClick={logout} aria-label="Keluar" title="Keluar" className="rounded-xl p-2 text-mut hover:bg-soft hover:text-tx"><LogOut size={16} /></button>
+      <button onClick={logout} aria-label="Keluar" title="Keluar" className="rounded-md p-2 text-mut hover:bg-soft hover:text-tx"><LogOut size={16} /></button>
     </div>
   );
 
@@ -93,7 +93,7 @@ export default function App() {
         {[...BOTTOM.map((k) => ITEMS.find((i) => i[0] === k)), null].map((it) => {
           const [k, l, Icon] = it || ['menu', 'Menu', Menu];
           const on = it && cur[0] === k;
-          return <button key={k} onClick={() => (it ? setTab(k) : setMenu(true))} className={cn('flex flex-1 flex-col items-center gap-0.5 py-1 text-xs', on ? 'font-bold text-primary' : 'text-mut')}><Icon size={20} />{l}</button>;
+          return <button key={k} onClick={() => (it ? setTab(k) : setMenu(true))} className={cn('flex flex-1 flex-col items-center gap-0.5 py-1 text-xs', on ? 'font-medium text-tx' : 'text-mut')}><Icon size={20} />{l}</button>;
         })}
       </nav>
     </div>

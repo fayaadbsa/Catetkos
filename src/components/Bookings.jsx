@@ -14,7 +14,7 @@ const DURATIONS = [1, 2, 3, 4, 6, 12];
 
 // Checkbox + tanggal (muncul kalau dicentang). value = tanggal atau '' (belum).
 const CheckDate = ({ label, value, onChange }) => (
-  <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line p-3">
+  <div className="flex flex-wrap items-center gap-3 rounded-md border border-line p-3">
     <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" className="size-5 accent-primary" checked={!!value} onChange={(e) => onChange(e.target.checked ? today() : '')} />{label}</label>
     {!!value && <Input type="date" className="w-auto" value={value} onChange={(e) => onChange(e.target.value)} aria-label={`Tanggal: ${label}`} />}
   </div>
@@ -49,11 +49,11 @@ function NewBooking({ init, rooms, guests, onClose, onDone }) {
         <Label>Deposit<Input type="number" min="0" inputMode="numeric" value={f.deposit} onChange={(e) => set({ deposit: e.target.value })} /></Label>
 
         {q && (
-          <div className="col-span-full rounded-xl bg-soft p-3 text-sm">
+          <div className="col-span-full rounded-md bg-soft p-3 text-sm">
             <ul className="space-y-1">{q.items.map((it) => (
               <li key={it.check_in} className="flex justify-between gap-2"><span>{dm(it.check_in)} → {dm(it.check_out)}{it.promo_name && <span className="ml-1 text-xs font-semibold text-ok">promo {it.promo_name}</span>}</span><span className="font-semibold">{rp(it.total)}</span></li>
             ))}</ul>
-            <div className="mt-2 flex justify-between border-t border-line pt-2 font-bold"><span>Total {q.items.length} bulan</span><span>{rp(q.total)}</span></div>
+            <div className="mt-2 flex justify-between border-t border-line pt-2 font-semibold"><span>Total {q.items.length} bulan</span><span>{rp(q.total)}</span></div>
           </div>
         )}
 
@@ -140,14 +140,14 @@ export default function Bookings() {
       <PageHeader title="Booking" desc="Satu baris = satu bulan. Booking panjang tercatat per bulan.">
         {active.length > 0 && <Button onClick={() => setDlg({ k: 'new' })}><Plus size={16} /> Booking baru</Button>}
       </PageHeader>
-      <div className="flex gap-1 overflow-x-auto rounded-xl bg-soft p-1 sm:w-fit" role="tablist">
+      <div className="flex gap-1 overflow-x-auto rounded-md bg-soft p-1 sm:w-fit" role="tablist">
         {[['all', 'Semua'], ['active', 'Menginap'], ['unpaid', 'Belum lunas']].map(([k, l]) => (
-          <button key={k} role="tab" aria-selected={filter === k} onClick={() => setFilter(k)} className={cn('whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold', filter === k ? 'bg-surface text-primary shadow-card' : 'text-mut hover:text-tx')}>{l}</button>
+          <button key={k} role="tab" aria-selected={filter === k} onClick={() => setFilter(k)} className={cn('whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold', filter === k ? 'bg-surface text-tx shadow-card' : 'text-mut hover:text-tx')}>{l}</button>
         ))}
       </div>
       <Card className="overflow-x-auto p-0">
         <table className="w-full text-sm">
-          <thead className="text-left text-xs font-bold uppercase tracking-wide text-mut"><tr>{['Tamu', 'Kamar', 'Periode', 'Tagihan', 'Sewa', 'Deposit', 'Aksi'].map((h) => <th key={h} className={cn('whitespace-nowrap p-3', h === 'Aksi' && 'text-right')}>{h}</th>)}</tr></thead>
+          <thead className="text-left text-xs font-semibold uppercase tracking-wide text-mut"><tr>{['Tamu', 'Kamar', 'Periode', 'Tagihan', 'Sewa', 'Deposit', 'Aksi'].map((h) => <th key={h} className={cn('whitespace-nowrap p-3', h === 'Aksi' && 'text-right')}>{h}</th>)}</tr></thead>
           <tbody>
             {shown.map((b) => (
               <tr key={b.id} className="border-t border-line hover:bg-soft/60">
@@ -158,7 +158,7 @@ export default function Bookings() {
                 <td className="whitespace-nowrap p-3">{rent(b)}</td>
                 <td className="whitespace-nowrap p-3">{dep(b)}</td>
                 <td className="whitespace-nowrap p-3 text-right">
-                  {b.status !== 'cancelled' && <Button variant="ghost" className="text-primary" onClick={() => extend(b)} title="Perpanjang 1 bulan dari tgl keluar" aria-label="Perpanjang 1 bulan"><CalendarPlus size={15} /> +1 bln</Button>}
+                  {b.status !== 'cancelled' && <Button variant="ghost" className="text-tx" onClick={() => extend(b)} title="Perpanjang 1 bulan dari tgl keluar" aria-label="Perpanjang 1 bulan"><CalendarPlus size={15} /> +1 bln</Button>}
                   <Button variant="ghost" aria-label="Edit" title="Edit" onClick={() => setDlg({ k: 'edit', b })}><Pencil size={15} /></Button>
                   <Button variant="ghost" aria-label="Hapus" title="Hapus" className="text-danger" onClick={() => del(b)}><Trash2 size={15} /></Button>
                 </td>

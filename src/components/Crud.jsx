@@ -58,7 +58,7 @@ export default function Crud({ resource, title, columns, fields, query = '', def
       )}
       <Card className="overflow-x-auto p-0">
         <table className="w-full text-sm">
-          <thead className="text-left text-xs font-bold uppercase tracking-wide text-mut"><tr>{columns.map((c) => <th key={c.key} className="whitespace-nowrap p-3">{c.label}</th>)}<th /></tr></thead>
+          <thead className="text-left text-xs font-semibold uppercase tracking-wide text-mut"><tr>{columns.map((c) => <th key={c.key} className="whitespace-nowrap p-3">{c.label}</th>)}<th /></tr></thead>
           <tbody>
             {rows?.map((r) => (
               <tr key={r.id} className="border-t border-line hover:bg-soft/60">

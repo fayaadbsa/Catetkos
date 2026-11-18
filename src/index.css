@@ -2,22 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Kos Hangat: terang krem + terakota. Dark = versi cokelat hangat. Nilai = "R G B". */
 :root {
-  --bg: 243 236 223; --surface: 255 255 255; --soft: 238 229 212; --line: 205 189 162;
-  --tx: 33 25 17; --mut: 92 77 59; --primary: 168 62 36; --primary-fg: 255 255 255;
-  --accent: 20 92 88; --danger: 166 28 22; --warn: 133 78 8; --ok: 30 104 60; --shadow: 90 60 30;
+  --bg: 250 250 250; --surface: 255 255 255; --soft: 240 240 243; --line: 220 220 225;
+  --tx: 9 9 11; --mut: 113 113 122; --primary: 24 24 27; --primary-fg: 250 250 250;
+  --brand: 194 86 58; --accent: 24 24 27; --danger: 185 28 28; --warn: 161 98 7; --ok: 21 128 61; --shadow: 0 0 0;
   color-scheme: light;
 }
 .dark {
-  --bg: 28 23 19; --surface: 38 32 25; --soft: 52 44 35; --line: 98 85 68;
-  --tx: 247 239 228; --mut: 196 181 159; --primary: 240 133 105; --primary-fg: 28 23 19;
-  --accent: 63 181 174; --danger: 255 128 114; --warn: 236 188 90; --ok: 115 212 156; --shadow: 0 0 0;
+  --bg: 9 9 11; --surface: 24 24 27; --soft: 39 39 42; --line: 69 69 77;
+  --tx: 250 250 250; --mut: 161 161 170; --primary: 250 250 250; --primary-fg: 24 24 27;
+  --brand: 232 120 92; --accent: 250 250 250; --danger: 248 113 113; --warn: 250 204 21; --ok: 74 222 128; --shadow: 0 0 0;
   color-scheme: dark;
 }
+/* Monokrom ala shadcn zinc. Satu-satunya warna: --brand (logo + seri utama chart). Nilai = "R G B". */
 body { @apply bg-bg font-sans text-tx antialiased; }
 
-:focus-visible { outline: 2px solid rgb(var(--primary)); outline-offset: 2px; }
+:focus-visible { outline: 2px solid rgb(var(--mut)); outline-offset: 2px; }
 
 /* scrollbar tipis, ikut tema */
 * { scrollbar-width: thin; scrollbar-color: rgb(var(--line)) transparent; }

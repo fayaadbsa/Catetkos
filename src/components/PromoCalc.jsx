@@ -8,7 +8,7 @@ export default function PromoCalc() {
   const r = promoCheck(Object.fromEntries(Object.entries(f).map(([k, v]) => [k, +v])));
   return (
     <div className="space-y-4">
-      <div><h2 className="text-lg font-bold">Kalkulator promo</h2><p className="text-sm text-mut">Cek dulu promonya masih untung atau nggak.</p></div>
+      <div><h2 className="text-lg font-semibold">Kalkulator promo</h2><p className="text-sm text-mut">Cek dulu promonya masih untung atau nggak.</p></div>
       <Card className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {Object.keys(f).map((k) => (
           <Label key={k}>{{ normal: 'Harga normal / bulan', promo: 'Harga promo / bulan', varPerNight: 'Biaya variabel / bulan', emptyNights: 'Hari kosong (rata2)' }[k]}

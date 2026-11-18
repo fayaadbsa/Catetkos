@@ -2,29 +2,28 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '../lib/api.js';
-export const Card = ({ className, ...p }) => <div className={cn('rounded-2xl border border-line bg-surface p-4 shadow-card', className)} {...p} />;
+export const Card = ({ className, ...p }) => <div className={cn('rounded-lg border border-line bg-surface p-4 shadow-card', className)} {...p} />;
 export const Button = ({ variant = 'primary', className, ...p }) => (
-  <button className={cn('inline-flex items-center justify-center gap-1 rounded-xl px-3 py-2 text-sm font-semibold transition disabled:opacity-50',
-    variant === 'primary' && 'bg-primary text-primary-fg hover:opacity-90',
+  <button className={cn('inline-flex items-center justify-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition disabled:opacity-50',
+    variant === 'primary' && 'bg-primary text-primary-fg hover:bg-primary/90',
     variant === 'ghost' && 'text-tx hover:bg-soft',
-    variant === 'outline' && 'border border-mut/60 text-tx hover:bg-soft',
+    variant === 'outline' && 'border border-line bg-surface text-tx hover:bg-soft',
     variant === 'danger' && 'bg-danger text-white hover:opacity-90', className)} {...p} />
 );
-const field = 'w-full rounded-xl border border-mut/50 bg-surface px-3 py-2 text-sm text-tx outline-none placeholder:text-mut focus:border-primary focus:ring-2 focus:ring-primary/20';
+const field = 'w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-tx outline-none placeholder:text-mut focus:border-mut focus:ring-2 focus:ring-mut/20';
 export const Input = ({ className, ...p }) => <input className={cn(field, className)} {...p} />;
 export const Select = ({ className, children, ...p }) => <select className={cn(field, className)} {...p}>{children}</select>;
 export const Label = ({ children, ...p }) => <label className="block text-sm font-medium text-tx" {...p}><span className="mb-1 block">{children}</span></label>;
-export const Stat = ({ label, value, hint, color = '#c2563a' }) => (
-  <Card className="relative overflow-hidden">
-    <div className="absolute inset-x-0 top-0 h-1.5" style={{ background: color }} />
+export const Stat = ({ label, value, hint }) => (
+  <Card>
     <div className="text-sm font-semibold text-mut">{label}</div>
-    <div className="mt-1 whitespace-nowrap text-xl font-extrabold text-tx">{value}</div>
+    <div className="mt-1 whitespace-nowrap text-xl font-semibold text-tx">{value}</div>
     {hint && <div className="mt-1 text-sm text-mut">{hint}</div>}
   </Card>
 );
 export const PageHeader = ({ title, desc, children }) => (
   <div className="flex flex-wrap items-end justify-between gap-3">
-    <div><h1 className="text-2xl font-extrabold tracking-tight">{title}</h1>{desc && <p className="mt-0.5 text-sm text-mut">{desc}</p>}</div>
+    <div><h1 className="text-2xl font-semibold tracking-tight">{title}</h1>{desc && <p className="mt-0.5 text-sm text-mut">{desc}</p>}</div>
     {children && <div className="flex gap-2">{children}</div>}
   </div>
 );
@@ -34,7 +33,7 @@ export const Badge = ({ color = '#8a7a66', children }) => (
 export const Modal = ({ title, onClose, size = 'lg', children }) => (
   <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/50 p-0 md:items-center md:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
     <div role="dialog" aria-modal="true" aria-label={title} className={`max-h-[90vh] w-full ${size === 'sm' ? 'max-w-sm' : 'max-w-2xl'} overflow-y-auto rounded-t-3xl border border-line bg-surface p-5 shadow-card md:rounded-3xl`}>
-      <div className="mb-4 flex items-center justify-between"><h3 className="text-lg font-bold">{title}</h3>
+      <div className="mb-4 flex items-center justify-between"><h3 className="text-lg font-semibold">{title}</h3>
         <button onClick={onClose} aria-label="Tutup" className="rounded p-1 text-mut hover:bg-soft hover:text-tx"><X size={18} /></button></div>
       {children}
     </div>
