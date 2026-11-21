@@ -4,3 +4,5 @@ dist
 node_modules
 !seed/example/
 seed/*.json
+test-results
+playwright-report

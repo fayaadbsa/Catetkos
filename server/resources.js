@@ -24,20 +24,20 @@ export const addMonths = (s, n) => {
 };
 
 // Harga per BULAN: promo aktif pada tanggal masuk (per tipe atau semua tipe) else harga kamar.
-export function quote(roomId, checkIn) {
+export function quote(kos, roomId, checkIn) {
   if (!validDate(String(checkIn))) bad('Tanggal tidak valid');
-  const room = one('SELECT r.id, r.room_type_id, COALESCE(r.price_override, t.base_price) price FROM rooms r JOIN room_types t ON t.id=r.room_type_id WHERE r.id=?', roomId);
+  const room = one('SELECT r.id, r.room_type_id, COALESCE(r.price_override, t.base_price) price FROM rooms r JOIN room_types t ON t.id=r.room_type_id WHERE r.id=? AND r.kos_id=?', roomId, kos);
   if (!room) bad('Kamar tidak ditemukan');
-  const promo = one('SELECT id, name, price FROM promos WHERE (room_type_id IS NULL OR room_type_id=?) AND ? BETWEEN start_date AND end_date ORDER BY price LIMIT 1', room.room_type_id, checkIn);
+  const promo = one('SELECT id, name, price FROM promos WHERE kos_id=? AND (room_type_id IS NULL OR room_type_id=?) AND ? BETWEEN start_date AND end_date ORDER BY price LIMIT 1', kos, room.room_type_id, checkIn);
   const rate = promo ? promo.price : room.price;
   return { rate, normal_rate: room.price, promo_id: promo?.id ?? null, promo_name: promo?.name ?? null, total: rate };
 }
 const monthCount = (m) => { const n = Number(m ?? 1); if (!Number.isInteger(n) || n < 1 || n > 12) bad('Durasi harus 1-12 bulan'); return n; };
 // Rincian N bulan berurutan dari tgl masuk. Tiap bulan dinilai promonya sendiri.
-export function quoteMonths(roomId, checkIn, months) {
+export function quoteMonths(kos, roomId, checkIn, months) {
   const n = monthCount(months);
   if (!validDate(String(checkIn))) bad('Tanggal tidak valid');
-  const items = Array.from({ length: n }, (_, i) => ({ check_in: addMonths(checkIn, i), check_out: addMonths(checkIn, i + 1), ...quote(roomId, addMonths(checkIn, i)) }));
+  const items = Array.from({ length: n }, (_, i) => ({ check_in: addMonths(checkIn, i), check_out: addMonths(checkIn, i + 1), ...quote(kos, roomId, addMonths(checkIn, i)) }));
   return { items, total: items.reduce((a, x) => a + x.total, 0) };
 }
 
@@ -45,33 +45,33 @@ const paidOf = (bookingId, exceptTx = null) => one('SELECT COALESCE(SUM(amount),
 
 const R = {
   'room-types': {
-    table: 'room_types', inUse: 'Tipe masih dipakai kamar. Arsipkan saja.',
+    table: 'room_types', scope: 't.kos_id', inUse: 'Tipe masih dipakai kamar. Arsipkan saja.',
     fields: { name: text('Nama tipe', { req: 1 }), base_price: int('Harga dasar', { req: 1, min: 0 }), capacity: int('Kapasitas', { min: 1, def: 1 }), archived: bool('Arsip') },
     list: 'SELECT t.*, (SELECT COUNT(*) FROM rooms r WHERE r.room_type_id=t.id AND r.archived=0) room_count FROM room_types t ORDER BY t.name',
   },
   rooms: {
-    table: 'rooms', inUse: 'Kamar punya booking. Arsipkan saja.',
+    table: 'rooms', scope: 'r.kos_id', inUse: 'Kamar punya booking. Arsipkan saja.',
     fields: { number: text('No kamar', { req: 1 }), room_type_id: ref('Tipe', 'room_types', { req: 1 }), price_override: int('Harga khusus', { min: 0 }), archived: bool('Arsip') },
     list: 'SELECT r.*, t.name type_name, COALESCE(r.price_override, t.base_price) price FROM rooms r JOIN room_types t ON t.id=r.room_type_id ORDER BY r.number',
   },
   promos: {
-    table: 'promos',
+    table: 'promos', scope: 'p.kos_id',
     fields: { name: text('Nama promo', { req: 1 }), room_type_id: ref('Tipe', 'room_types'), price: int('Harga promo', { req: 1, min: 0 }), start_date: date('Mulai', { req: 1 }), end_date: date('Sampai', { req: 1 }) },
     check: (v) => { if (v.end_date < v.start_date) bad('Tanggal akhir sebelum tanggal mulai'); },
     list: 'SELECT p.*, t.name type_name FROM promos p LEFT JOIN room_types t ON t.id=p.room_type_id ORDER BY p.start_date DESC',
   },
   guests: {
-    table: 'guests', inUse: 'Tamu punya booking.',
+    table: 'guests', scope: 'g.kos_id', inUse: 'Tamu punya booking.',
     fields: { name: text('Nama', { req: 1 }), phone: text('HP'), note: text('Catatan') },
     list: 'SELECT g.*, (SELECT COUNT(*) FROM bookings b WHERE b.guest_id=g.id) booking_count FROM guests g ORDER BY g.name',
   },
   categories: {
-    table: 'categories', inUse: 'Kategori sudah dipakai transaksi.',
+    table: 'categories', scope: 'c.kos_id', inUse: 'Kategori sudah dipakai transaksi.',
     fields: { kind: { type: 'enum', label: 'Jenis', req: 1, of: ['income', 'expense', 'capital'] }, name: text('Nama', { req: 1 }) },
     list: 'SELECT c.*, (SELECT COUNT(*) FROM transactions t WHERE t.category_id=c.id) uses FROM categories c ORDER BY c.kind, c.name',
   },
   bookings: {
-    table: 'bookings', inUse: 'Booking punya pembayaran. Hapus pembayarannya dulu.',
+    table: 'bookings', scope: 'b.kos_id', inUse: 'Booking punya pembayaran. Hapus pembayarannya dulu.',
     fields: {
       room_id: ref('Kamar', 'rooms', { req: 1 }), guest_id: ref('Tamu', 'guests', { req: 1 }), promo_id: ref('Promo', 'promos'),
       check_in: date('Check-in', { req: 1 }), check_out: date('Check-out', { req: 1 }), price_total: int('Total harga', { min: 0 }),
@@ -79,9 +79,9 @@ const R = {
       deposit: int('Deposit', { min: 0, def: 0 }), deposit_paid_date: date('Deposit diterima'), deposit_returned_date: date('Deposit dikembalikan'),
     },
     // Tamu baru bisa diketik langsung (guest_name) tanpa buka halaman Tamu.
-    pre: (b) => {
+    pre: (b, kos) => {
       if (!b.check_out && validDate(String(b.check_in))) b.check_out = addMonths(b.check_in, 1); // default sebulan
-      if (!b.guest_id && String(b.guest_name || '').trim()) b.guest_id = Number(db.prepare('INSERT INTO guests(name) VALUES(?)').run(b.guest_name.trim()).lastInsertRowid);
+      if (!b.guest_id && String(b.guest_name || '').trim()) b.guest_id = Number(db.prepare('INSERT INTO guests(name,kos_id) VALUES(?,?)').run(b.guest_name.trim(), kos).lastInsertRowid);
     },
     check: (v, id, cur) => {
       if (v.check_out <= v.check_in) bad('Check-out harus setelah check-in');
@@ -89,7 +89,7 @@ const R = {
       if (room.archived && !id) bad('Kamar sudah diarsipkan');
       if (v.status !== 'cancelled' && one("SELECT 1 FROM bookings WHERE room_id=? AND status!='cancelled' AND id IS NOT ? AND check_in<? AND check_out>?", v.room_id, id ?? null, v.check_out, v.check_in)) conflict('Kamar bentrok dengan booking lain di tanggal itu');
       if (v.deposit_returned_date && !v.deposit_paid_date) bad('Deposit belum diterima, nggak bisa dikembalikan');
-      const q = quote(v.room_id, v.check_in);
+      const q = quote(v.kos_id, v.room_id, v.check_in);
       if (v.price_total === null) { v.price_total = q.total; v.promo_id = q.promo_id; }
       else if (!cur || v.price_total !== cur.price_total || v.check_in !== cur.check_in || v.room_id !== cur.room_id) v.promo_id = v.price_total === q.total ? q.promo_id : null; // harga manual = bukan promo
       if (id && v.price_total < paidOf(id)) bad('Total harga lebih kecil dari yang sudah dibayar');
@@ -102,13 +102,13 @@ const R = {
       FROM bookings b JOIN rooms r ON r.id=b.room_id JOIN guests g ON g.id=b.guest_id ORDER BY b.check_in DESC, b.id DESC`,
   },
   transactions: {
-    table: 'transactions',
+    table: 'transactions', scope: 't.kos_id',
     fields: {
       category_id: ref('Kategori', 'categories', { req: 1 }), booking_id: ref('Booking', 'bookings'), room_id: ref('Kamar', 'rooms'),
       date: date('Tanggal', { req: 1 }), amount: int('Nominal', { req: 1, min: 1 }), method: text('Metode'), note: text('Catatan'),
     },
     // Bayar booking tanpa kategori = otomatis "Sewa kamar".
-    pre: (b) => { if (b.booking_id && !b.category_id) b.category_id = one("SELECT id FROM categories WHERE kind='income' AND name='Sewa kamar'")?.id; },
+    pre: (b, kos) => { if (b.booking_id && !b.category_id) b.category_id = one("SELECT id FROM categories WHERE kos_id=? AND kind='income' AND name='Sewa kamar'", kos)?.id; },
     check: (v, id) => {
       const cat = one('SELECT kind FROM categories WHERE id=?', v.category_id);
       if (!v.booking_id) return;
@@ -120,14 +120,14 @@ const R = {
     list: `SELECT t.*, c.kind, c.name category, r.number room_number, g.name guest_name
       FROM transactions t JOIN categories c ON c.id=t.category_id LEFT JOIN rooms r ON r.id=t.room_id
       LEFT JOIN bookings b ON b.id=t.booking_id LEFT JOIN guests g ON g.id=b.guest_id`,
-    filter: (q) => (['income', 'expense', 'capital'].includes(q.kind) ? [' WHERE c.kind=?', [q.kind]] : ['', []]),
+    filter: (q) => (['income', 'expense', 'capital'].includes(q.kind) ? [' AND c.kind=?', [q.kind]] : ['', []]),
     order: ' ORDER BY t.date DESC, t.id DESC',
   },
 };
 export const isResource = (n) => Object.hasOwn(R, n);
 
-function clean(def, body, cur = {}) {
-  const out = {};
+function clean(def, kos, body, cur = {}) {
+  const out = { kos_id: kos };
   for (const [k, f] of Object.entries(def.fields)) {
     let v = body[k] !== undefined ? body[k] : k in cur ? cur[k] : f.def ?? null;
     if (v === '') v = null;
@@ -138,7 +138,7 @@ function clean(def, body, cur = {}) {
     else if (f.type === 'bool') out[k] = v ? 1 : 0;
     else if (f.type === 'date') { if (!validDate(String(v))) bad(`${f.label} harus tanggal YYYY-MM-DD`); out[k] = v; }
     else if (f.type === 'enum') { if (!f.of.includes(v)) bad(`${f.label} harus salah satu: ${f.of.join(', ')}`); out[k] = v; }
-    else if (f.type === 'ref') { v = Number(v); if (!one(`SELECT 1 FROM ${f.table} WHERE id=?`, v)) bad(`${f.label} tidak ditemukan`); out[k] = v; }
+    else if (f.type === 'ref') { v = Number(v); if (!one(`SELECT 1 FROM ${f.table} WHERE id=? AND kos_id=?`, v, kos)) bad(`${f.label} tidak ditemukan`); out[k] = v; }
   }
   return out;
 }
@@ -157,37 +157,38 @@ function guard(def, fn) {
   }
 }
 
-export function list(name, q = {}) {
+export function list(kos, name, q = {}) {
   const d = R[name];
   const [where, params] = d.filter ? d.filter(q) : ['', []];
-  const rows = db.prepare(d.list + where + (d.order || '')).all(...params);
+  const [base, ord] = d.list.split(' ORDER BY '); // ORDER BY harus setelah WHERE
+  const rows = db.prepare(`${base} WHERE ${d.scope}=?${where}${ord ? ' ORDER BY ' + ord : d.order || ''}`).all(kos, ...params);
   return d.post ? d.post(rows) : rows;
 }
 
-function insert(d, body) {
-  d.pre?.(body);
-  const v = clean(d, body);
+function insert(d, kos, body) {
+  d.pre?.(body, kos);
+  const v = clean(d, kos, body);
   d.check?.(v);
   const cols = Object.keys(v);
   const r = db.prepare(`INSERT INTO ${d.table}(${cols.join(',')}) VALUES(${cols.map(() => '?').join(',')})`).run(...Object.values(v));
   return Number(r.lastInsertRowid);
 }
-export const create = (name, body) => { const d = R[name]; return guard(d, () => ({ id: insert(d, body) })); };
+export const create = (kos, name, body) => { const d = R[name]; return guard(d, () => ({ id: insert(d, kos, body) })); };
 
 // Booking N bulan sekaligus = N baris (1 per bulan), atomik: satu bulan bentrok, semua batal.
 // Deposit + status bayar cuma nempel di bulan pertama.
-export function createBatch(body) {
+export function createBatch(kos, body) {
   const d = R.bookings;
   return guard(d, () => {
     const n = monthCount(body.months);
     if (!validDate(String(body.check_in))) bad('Tgl masuk tidak valid');
-    d.pre(body);
+    d.pre(body, kos);
     const ids = [];
     for (let i = 0; i < n; i++) {
       const first = i === 0;
-      const id = insert(d, { room_id: body.room_id, guest_id: body.guest_id, note: body.note, check_in: addMonths(body.check_in, i), check_out: addMonths(body.check_in, i + 1),
+      const id = insert(d, kos, { room_id: body.room_id, guest_id: body.guest_id, note: body.note, check_in: addMonths(body.check_in, i), check_out: addMonths(body.check_in, i + 1),
         deposit: first ? body.deposit ?? 0 : 0, deposit_paid_date: first ? body.deposit_paid_date : null });
-      if (first && body.paid_date) insert(R.transactions, { booking_id: id, date: body.paid_date, amount: one('SELECT price_total p FROM bookings WHERE id=?', id).p });
+      if (first && body.paid_date) insert(R.transactions, kos, { booking_id: id, date: body.paid_date, amount: one('SELECT price_total p FROM bookings WHERE id=?', id).p });
       ids.push(id);
     }
     return { ids };
@@ -195,36 +196,36 @@ export function createBatch(body) {
 }
 
 // Tandai lunas = 1 transaksi senilai sisa tagihan (kategori Sewa kamar). paid:false = batalkan semua pembayaran booking itu.
-export function payBooking(id, body) {
+export function payBooking(kos, id, body) {
   return guard(R.bookings, () => {
-    const b = one('SELECT price_total, status FROM bookings WHERE id=?', id);
+    const b = one('SELECT price_total, status FROM bookings WHERE id=? AND kos_id=?', id, kos);
     if (!b) throw new HttpError(404, 'Data tidak ada');
     if (body.paid === false) { db.prepare('DELETE FROM transactions WHERE booking_id=?').run(id); return { ok: true }; }
     if (b.status === 'cancelled') bad('Booking sudah dibatalkan');
     const due = b.price_total - paidOf(id);
-    if (due > 0) insert(R.transactions, { booking_id: id, date: body.date, amount: due });
+    if (due > 0) insert(R.transactions, kos, { booking_id: id, date: body.date, amount: due });
     return { ok: true };
   });
 }
 
 // Update = merge dengan baris lama, jadi field yang nggak dikirim nggak ketimpa NULL.
-export function update(name, id, body) {
+export function update(kos, name, id, body) {
   const d = R[name];
   return guard(d, () => {
-    const cur = one(`SELECT * FROM ${d.table} WHERE id=?`, id);
+    const cur = one(`SELECT * FROM ${d.table} WHERE id=? AND kos_id=?`, id, kos);
     if (!cur) throw new HttpError(404, 'Data tidak ada');
-    d.pre?.(body);
-    const v = clean(d, body, cur);
+    d.pre?.(body, kos);
+    const v = clean(d, kos, body, cur);
     d.check?.(v, id, cur);
     db.prepare(`UPDATE ${d.table} SET ${Object.keys(v).map((c) => c + '=?').join(',')} WHERE id=?`).run(...Object.values(v), id);
     return { ok: true };
   });
 }
 
-export function remove(name, id) {
+export function remove(kos, name, id) {
   const d = R[name];
   return guard(d, () => {
-    if (!db.prepare(`DELETE FROM ${d.table} WHERE id=?`).run(id).changes) throw new HttpError(404, 'Data tidak ada');
+    if (!db.prepare(`DELETE FROM ${d.table} WHERE id=? AND kos_id=?`).run(id, kos).changes) throw new HttpError(404, 'Data tidak ada');
     return { ok: true };
   });
 }

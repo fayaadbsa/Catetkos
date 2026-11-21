@@ -1,5 +1,5 @@
 import { scryptSync, randomBytes, timingSafeEqual } from 'node:crypto';
-import { db } from './db.js';
+import { db, createKos } from './db.js';
 
 const DAY = 86400000;
 export const hashPw = (pw, salt = randomBytes(16).toString('hex')) =>
@@ -7,7 +7,8 @@ export const hashPw = (pw, salt = randomBytes(16).toString('hex')) =>
 
 export function createUser(username, password) {
   const { salt, hash } = hashPw(password);
-  db.prepare('INSERT INTO users(username,hash,salt) VALUES(?,?,?)').run(username, hash, salt);
+  const id = Number(db.prepare('INSERT INTO users(username,hash,salt) VALUES(?,?,?)').run(username, hash, salt).lastInsertRowid);
+  return id;
 }
 export function verify(username, password) {
   const u = db.prepare('SELECT * FROM users WHERE username=?').get(username);

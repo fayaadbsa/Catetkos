@@ -4,15 +4,16 @@ import { diffDays } from './resources.js';
 const iso = (d) => d.toISOString().slice(0, 10);
 const addDays = (s, n) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return iso(d); };
 const sum = (sql, ...p) => db.prepare(sql).get(...p).s;
+const DEFAULT_TODAY = () => iso(new Date());
 
 // Semua angka dari DB. Window 30 hari konsisten untuk okupansi, omzet tipe, promo, dan biaya per kategori.
-export function dashboard(today = iso(new Date())) {
+export function dashboard(kos, today = DEFAULT_TODAY()) {
   const WIN = 30;
   const wStart = addDays(today, -WIN + 1);
   const wEnd = addDays(today, 1); // exclusive
-  const rooms = db.prepare('SELECT r.id, r.number, t.name type FROM rooms r JOIN room_types t ON t.id=r.room_type_id WHERE r.archived=0 ORDER BY r.number').all();
+  const rooms = db.prepare('SELECT r.id, r.number, t.name type FROM rooms r JOIN room_types t ON t.id=r.room_type_id WHERE r.archived=0 AND r.kos_id=? ORDER BY r.number').all(kos);
   const activeIds = new Set(rooms.map((r) => r.id));
-  const bookings = db.prepare("SELECT b.*, t.name type FROM bookings b JOIN rooms r ON r.id=b.room_id JOIN room_types t ON t.id=r.room_type_id WHERE b.status!='cancelled'").all();
+  const bookings = db.prepare("SELECT b.*, t.name type FROM bookings b JOIN rooms r ON r.id=b.room_id JOIN room_types t ON t.id=r.room_type_id WHERE b.status!='cancelled' AND b.kos_id=?").all(kos);
 
   // okupansi: malam terisi di window / (kamar aktif * hari). check_out eksklusif.
   let occNights = 0;
@@ -45,13 +46,13 @@ export function dashboard(today = iso(new Date())) {
   const ym = today.slice(0, 7);
   const months = [];
   for (let i = 5; i >= 0; i--) { const d = new Date(ym + '-01T00:00:00Z'); d.setUTCMonth(d.getUTCMonth() - i); months.push(iso(d).slice(0, 7)); }
-  const rows = db.prepare('SELECT substr(t.date,1,7) m, c.kind k, SUM(t.amount) s FROM transactions t JOIN categories c ON c.id=t.category_id WHERE t.date>=? GROUP BY m, k').all(months[0] + '-01');
+  const rows = db.prepare('SELECT substr(t.date,1,7) m, c.kind k, SUM(t.amount) s FROM transactions t JOIN categories c ON c.id=t.category_id WHERE t.kos_id=? AND t.date>=? GROUP BY m, k').all(kos, months[0] + '-01');
   const cashflow = months.map((m) => {
     const g = (k) => rows.find((r) => r.m === m && r.k === k)?.s ?? 0;
     return { month: m, income: g('income'), expense: g('expense'), capital: g('capital'), net: g('income') - g('expense') };
   });
 
-  const total = (k) => sum('SELECT COALESCE(SUM(t.amount),0) s FROM transactions t JOIN categories c ON c.id=t.category_id WHERE c.kind=?', k);
+  const total = (k) => sum('SELECT COALESCE(SUM(t.amount),0) s FROM transactions t JOIN categories c ON c.id=t.category_id WHERE t.kos_id=? AND c.kind=?', kos, k);
   const capitalTotal = total('capital');
   const cumNet = total('income') - total('expense');
   const recent = cashflow.slice(-3).reduce((a, m) => a + m.net, 0) / 3;
@@ -64,12 +65,12 @@ export function dashboard(today = iso(new Date())) {
 
   // piutang: booking aktif yang belum lunas
   const unpaid = db.prepare(`SELECT b.id, b.check_in, b.price_total - COALESCE((SELECT SUM(amount) FROM transactions t WHERE t.booking_id=b.id),0) due
-    FROM bookings b WHERE b.status!='cancelled'`).all().filter((b) => b.due > 0);
+    FROM bookings b WHERE b.status!='cancelled' AND b.kos_id=?`).all(kos).filter((b) => b.due > 0);
   const receivable = { total: unpaid.reduce((a, b) => a + b.due, 0), count: unpaid.length, overdue: unpaid.filter((b) => b.check_in <= today).length };
 
-  const depositHeld = sum('SELECT COALESCE(SUM(deposit),0) s FROM bookings WHERE deposit_paid_date IS NOT NULL AND deposit_returned_date IS NULL');
+  const depositHeld = sum('SELECT COALESCE(SUM(deposit),0) s FROM bookings WHERE kos_id=? AND deposit_paid_date IS NOT NULL AND deposit_returned_date IS NULL', kos);
 
-  const expenseByCat = db.prepare("SELECT c.name, SUM(t.amount) value FROM transactions t JOIN categories c ON c.id=t.category_id WHERE c.kind='expense' AND t.date>=? AND t.date<? GROUP BY c.id ORDER BY value DESC").all(wStart, wEnd);
+  const expenseByCat = db.prepare("SELECT c.name, SUM(t.amount) value FROM transactions t JOIN categories c ON c.id=t.category_id WHERE t.kos_id=? AND c.kind='expense' AND t.date>=? AND t.date<? GROUP BY c.id ORDER BY value DESC").all(kos, wStart, wEnd);
 
   const insights = [];
   for (const r of emptyRooms) {

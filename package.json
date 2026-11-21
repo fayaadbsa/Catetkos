@@ -10,6 +10,8 @@
     "start": "node server/index.js",
     "seed": "node scripts/seed.js",
     "test": "node --test test/*.test.js",
+    "seed:test": "node scripts/seed-test.js",
+    "test:e2e": "playwright test",
     "seed:admin": "node scripts/seed-admin.js",
     "set:password": "node scripts/set-password.js",
     "typecheck": "tsc --noEmit"
@@ -25,6 +27,7 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.7.0",

@@ -3,12 +3,14 @@ import { AuthProvider, useAuth } from './lib/auth';
 import { useDark } from './lib/useDark';
 import { DarkContext } from './lib/dark';
 import Login from './pages/Login';
+import { KosProvider } from './lib/kos';
+import NewKos from './pages/NewKos';
 import { AppShell } from './components/shell/AppShell';
 
 function Gate() {
   const { status } = useAuth();
   if (status === 'loading') return null;
-  return status === 'in' ? <AppShell /> : <Login />;
+  return status === 'in' ? <KosProvider empty={(create) => <NewKos onCreate={create} />}><AppShell /></KosProvider> : <Login />;
 }
 
 export default function App() {

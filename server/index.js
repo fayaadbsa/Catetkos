@@ -3,6 +3,7 @@ import { readFileSync, existsSync, statSync } from 'node:fs';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { createUser, verify, newSession, sessionUser, dropSession, changePassword } from './auth.js';
 import { dashboard } from './dashboard.js';
+import { createKos, myKos, isMember, addMember, members, removeMember } from './db.js';
 import { isResource, list, create, createBatch, payBooking, update, remove, quoteMonths, HttpError } from './resources.js';
 
 const PORT = process.env.PORT || 3005;
@@ -39,7 +40,34 @@ async function api(req, res, url) {
   const user = sessionUser(cookie(req, 'sid'));
   if (!user) return send(res, 401, { error: 'Belum login' });
   if (p === '/api/me') return send(res, 200, user);
-  if (p === '/api/dashboard') return send(res, 200, dashboard());
+
+  // Kos: daftar milik akun ini, bikin baru, kelola anggota. Akses selalu dicek lewat memberships.
+  if (p === '/api/kos' && req.method === 'GET') return send(res, 200, myKos(user.id));
+  if (p === '/api/kos' && req.method === 'POST') {
+    const name = String((await readBody(req)).name || '').trim();
+    if (!name) return send(res, 400, { error: 'Nama kos wajib diisi' });
+    return send(res, 201, { id: createKos(name, user.id) });
+  }
+  const km = p.match(/^\/api\/kos\/(\d+)\/members(?:\/(\d+))?$/);
+  if (km) {
+    const kid = Number(km[1]);
+    if (!isMember(user.id, kid)) return send(res, 404, { error: 'Kos tidak ditemukan' });
+    if (req.method === 'GET') return send(res, 200, members(kid));
+    if (req.method === 'POST') {
+      if (!addMember(kid, String((await readBody(req)).username || '').trim())) return send(res, 404, { error: 'Username tidak ditemukan' });
+      return send(res, 200, members(kid));
+    }
+    if (req.method === 'DELETE' && km[2]) {
+      if (!removeMember(kid, Number(km[2]))) return send(res, 400, { error: 'Kos harus punya minimal satu anggota' });
+      return send(res, 200, members(kid));
+    }
+    return send(res, 405, { error: 'Method not allowed' });
+  }
+
+  // Semua data bisnis di bawah ini terikat ke kos aktif (header X-Kos-Id) dan wajib anggota.
+  const kos = Number(req.headers['x-kos-id']);
+  if (!kos || !isMember(user.id, kos)) return send(res, 403, { error: 'Pilih kos dulu' });
+  if (p === '/api/dashboard') return send(res, 200, dashboard(kos));
   if (p === '/api/password' && req.method === 'POST') {
     const b = await readBody(req);
     if (!b.oldPassword || !b.newPassword) return send(res, 400, { error: 'Isi password lama dan baru' });
@@ -47,17 +75,17 @@ async function api(req, res, url) {
     return send(res, 200, { ok: true }, { 'Set-Cookie': 'sid=; HttpOnly; Path=/; Max-Age=0' });
   }
 
-  if (p === '/api/quote') return send(res, 200, quoteMonths(Number(url.searchParams.get('room_id')), url.searchParams.get('check_in'), url.searchParams.get('months')));
-  if (p === '/api/bookings/batch' && req.method === 'POST') return send(res, 201, createBatch(await readBody(req)));
+  if (p === '/api/quote') return send(res, 200, quoteMonths(kos, Number(url.searchParams.get('room_id')), url.searchParams.get('check_in'), url.searchParams.get('months')));
+  if (p === '/api/bookings/batch' && req.method === 'POST') return send(res, 201, createBatch(kos, await readBody(req)));
   const pay = p.match(/^\/api\/bookings\/(\d+)\/pay$/);
-  if (pay && req.method === 'POST') return send(res, 200, payBooking(Number(pay[1]), await readBody(req)));
+  if (pay && req.method === 'POST') return send(res, 200, payBooking(kos, Number(pay[1]), await readBody(req)));
   const m = p.match(/^\/api\/([a-z-]+)(?:\/(\d+))?$/);
   if (!m || !isResource(m[1])) return send(res, 404, { error: 'Not found' });
   const [, t, id] = m;
-  if (req.method === 'GET' && !id) return send(res, 200, list(t, Object.fromEntries(url.searchParams)));
-  if (req.method === 'POST' && !id) return send(res, 201, create(t, await readBody(req)));
-  if (req.method === 'PUT' && id) return send(res, 200, update(t, Number(id), await readBody(req)));
-  if (req.method === 'DELETE' && id) return send(res, 200, remove(t, Number(id)));
+  if (req.method === 'GET' && !id) return send(res, 200, list(kos, t, Object.fromEntries(url.searchParams)));
+  if (req.method === 'POST' && !id) return send(res, 201, create(kos, t, await readBody(req)));
+  if (req.method === 'PUT' && id) return send(res, 200, update(kos, t, Number(id), await readBody(req)));
+  if (req.method === 'DELETE' && id) return send(res, 200, remove(kos, t, Number(id)));
   return send(res, 405, { error: 'Method not allowed' });
 }
 

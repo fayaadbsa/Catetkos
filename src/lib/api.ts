@@ -1,10 +1,16 @@
 export class ApiError extends Error { constructor(msg: string, public status: number) { super(msg); } }
 export interface ToastDetail { msg: string; bad: boolean }
 
+// Kos aktif disimpan di sini (diset KosProvider) dan dikirim di tiap request.
+const KEY = 'kosId';
+let kosId = Number(localStorage.getItem(KEY)) || 0;
+export const getKosId = () => kosId;
+export const setKosId = (id: number) => { kosId = id; localStorage.setItem(KEY, String(id)); };
+
 export async function api<T = any>(path: string, opts: { method?: string; body?: unknown } = {}): Promise<T> {
   const res = await fetch('/api' + path, {
     method: opts.method || (opts.body ? 'POST' : 'GET'),
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(kosId ? { 'X-Kos-Id': String(kosId) } : {}) },
     body: opts.body ? JSON.stringify(opts.body) : undefined,
     credentials: 'same-origin',
   });

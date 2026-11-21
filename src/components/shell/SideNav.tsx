@@ -4,6 +4,7 @@ import { cn } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { NAV, ACCOUNT } from './nav-items';
 import { Logo } from './Logo';
+import { KosSwitcher } from './KosSwitcher';
 
 // Daftar menu bergrup. Dipakai sidebar desktop dan drawer "Menu" di mobile.
 export function NavList({ onNavigate }: { onNavigate?: () => void }) {
@@ -42,7 +43,8 @@ export function UserFooter({ onNavigate }: { onNavigate?: () => void }) {
 export function Sidebar() {
   return (
     <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line bg-surface p-4 md:flex">
-      <div className="mb-5 px-1"><Logo /></div>
+      <div className="mb-3 px-1"><Logo /></div>
+      <div className="mb-4"><KosSwitcher /></div>
       <div className="min-h-0 flex-1 overflow-y-auto"><NavList /></div>
       <div className="mt-3"><UserFooter /></div>
     </aside>
