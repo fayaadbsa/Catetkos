@@ -67,7 +67,7 @@ async function api(req, res, url) {
   // Semua data bisnis di bawah ini terikat ke kos aktif (header X-Kos-Id) dan wajib anggota.
   const kos = Number(req.headers['x-kos-id']);
   if (!kos || !isMember(user.id, kos)) return send(res, 403, { error: 'Pilih kos dulu' });
-  if (p === '/api/dashboard') return send(res, 200, dashboard(kos));
+  if (p === '/api/dashboard') return send(res, 200, dashboard(kos, undefined, Object.fromEntries(url.searchParams)));
   if (p === '/api/password' && req.method === 'POST') {
     const b = await readBody(req);
     if (!b.oldPassword || !b.newPassword) return send(res, 400, { error: 'Isi password lama dan baru' });

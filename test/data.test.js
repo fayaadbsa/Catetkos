@@ -138,3 +138,12 @@ test('membership many-to-many', () => {
   assert.equal(members(K2).length, 2);
   assert.equal(removeMember(K2, b), true); assert.equal(removeMember(K, a), false); // anggota terakhir ditahan
 });
+
+test('dashboard filter: days + tipe', () => {
+  const all = dashboard(K, '2026-11-21', { days: 90 });
+  assert.equal(all.windowDays, 90);
+  const tid = db.prepare('SELECT id FROM room_types WHERE kos_id=? LIMIT 1').get(K).id;
+  const one = dashboard(K, '2026-11-21', { type: tid });
+  assert.ok(one.roomCount <= all.roomCount);
+  assert.equal(dashboard(K, '2026-11-21', { days: 99999 }).windowDays, 365);
+});

@@ -1,6 +1,7 @@
-import { Building2, LayoutDashboard, CalendarCheck, BedDouble, Users, Tag, Layers, ListChecks, ArrowDownToLine, ArrowUpFromLine, Landmark, UserCircle, type LucideIcon } from 'lucide-react';
+import { Building2, LayoutDashboard, CalendarCheck, CalendarDays, BedDouble, Users, Tag, Layers, ListChecks, ArrowDownToLine, ArrowUpFromLine, Landmark, UserCircle, type LucideIcon } from 'lucide-react';
 import type { ComponentType } from 'react';
 import Dashboard from '../../pages/Dashboard';
+import Calendar from '../../pages/Calendar';
 import Bookings from '../../pages/Bookings';
 import KosPage from '../../pages/KosPage';
 import Account from '../../pages/Account';
@@ -13,6 +14,7 @@ export const NAV: { group: string; items: NavItem[] }[] = [
   { group: 'Ringkasan', items: [{ path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, page: Dashboard }] },
   { group: 'Operasional', items: [
     { path: '/bookings', label: 'Booking', icon: CalendarCheck, page: Bookings },
+    { path: '/calendar', label: 'Kalender', icon: CalendarDays, page: Calendar },
     { path: '/guests', label: 'Tamu', icon: Users, page: Guests },
     { path: '/promo', label: 'Promo', icon: Tag, page: Promos }] },
   { group: 'Keuangan', items: [
@@ -29,4 +31,4 @@ export const ACCOUNT: NavItem = { path: '/account', label: 'Akun', icon: UserCir
 export const ALL_ITEMS = [...NAV.flatMap((g) => g.items), ACCOUNT];
 export const HOME = '/dashboard';
 // Tab bawah mobile (+ tombol "Menu" buat sisanya).
-export const BOTTOM_PATHS = ['/dashboard', '/bookings', '/income', '/rooms'];
+export const BOTTOM_PATHS = ['/dashboard', '/bookings', '/calendar', '/income'];

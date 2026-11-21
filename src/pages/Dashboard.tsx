@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useList } from '../lib/useList';
+import { Tabs } from '../components/ui';
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Legend, PieChart, Pie, Cell } from 'recharts';
 import { api, rp } from '../lib/api';
 import { C, SEM, roomColor } from '../lib/theme';
@@ -11,7 +13,10 @@ const short = (v: number) => (Math.abs(v) >= 1e6 ? `${String(+(v / 1e6).toFixed(
 
 export default function Dashboard() {
   const [d, setD] = useState<any>(null);
-  useEffect(() => { api('/dashboard').then(setD).catch(() => {}); }, []);
+  const [days, setDays] = useState(30);
+  const [type, setType] = useState(0);
+  const [tipe] = useList('room-types');
+  useEffect(() => { api(`/dashboard?days=${days}&type=${type}`).then(setD).catch(() => {}); }, [days, type]);
   if (!d) return <p className="text-mut">Lagi ngitung duit...</p>;
   const pb = d.payback;
   const LV: Record<string, [typeof Info, string]> = { urgent: [AlertOctagon, 'text-danger'], warn: [AlertTriangle, 'text-warn'], info: [Info, 'text-mut'], ok: [CheckCircle2, 'text-ok'] };
@@ -19,7 +24,11 @@ export default function Dashboard() {
   const typeTotal = types.reduce((a: number, t) => a + t.value, 0);
   return (
     <div className="space-y-4">
-      <PageHeader title="Dashboard" desc="Kondisi kos 30 hari terakhir." />
+      <PageHeader title="Dashboard" desc={`Kondisi kos ${d.windowDays} hari terakhir.`} />
+      <div className="flex flex-wrap items-center gap-2">
+        <Tabs label="Rentang waktu" value={days} onChange={setDays} items={[[7, '7 hari'], [30, '30 hari'], [90, '3 bulan'], [365, '1 tahun']]} />
+        <Tabs label="Tipe kamar" value={type} onChange={setType} items={[[0, 'Semua tipe'], ...tipe.filter((t) => !t.archived).map((t) => [t.id, t.name] as [number, string])]} />
+      </div>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
         <Stat label="Okupansi" value={`${d.occupancy}%`} hint={`dari ${d.roomCount} kamar aktif`} />
         <Stat label="Omzet promo" value={rp(d.promoSplit.promo)} />
@@ -53,7 +62,7 @@ export default function Dashboard() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <h3 className="mb-2 text-base font-semibold">Duit masuk vs keluar (6 bulan)</h3>
+          <h3 className="mb-2 text-base font-semibold">Duit masuk vs keluar ({d.months} bulan)</h3>
           <div className="h-56 md:h-64">
             <ResponsiveContainer>
               <BarChart data={d.cashflow} barGap={4}>
@@ -90,7 +99,7 @@ export default function Dashboard() {
       </div>
 
       <Card>
-        <h3 className="mb-2 text-base font-semibold">Biaya per kategori (30 hari)</h3>
+        <h3 className="mb-2 text-base font-semibold">Biaya per kategori ({d.windowDays} hari)</h3>
         {d.expenseByCat.length ? (
           <div className="h-56"><ResponsiveContainer><BarChart data={d.expenseByCat} layout="vertical" margin={{ left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={C.grid} horizontal={false} />
@@ -98,7 +107,7 @@ export default function Dashboard() {
             <Tooltip formatter={(v) => rp(Number(v))} contentStyle={C.tip} cursor={{ fill: '#8a7a6622' }} />
             <Bar dataKey="value" name="Biaya" radius={[0, 6, 6, 0]}>{d.expenseByCat.map((t: any, i: number) => <Cell key={t.name} fill={roomColor(i)} />)}</Bar>
           </BarChart></ResponsiveContainer></div>
-        ) : <p className="text-sm text-mut">Belum ada biaya 30 hari ini.</p>}
+        ) : <p className="text-sm text-mut">Belum ada biaya di rentang ini.</p>}
       </Card>
 
       <Card>

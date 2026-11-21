@@ -7,13 +7,15 @@ const sum = (sql, ...p) => db.prepare(sql).get(...p).s;
 const DEFAULT_TODAY = () => iso(new Date());
 
 // Semua angka dari DB. Window 30 hari konsisten untuk okupansi, omzet tipe, promo, dan biaya per kategori.
-export function dashboard(kos, today = DEFAULT_TODAY()) {
-  const WIN = 30;
+// opts.days = lebar window (7-365), opts.type = id tipe kamar (filter okupansi/omzet/status kamar). Arus kas & biaya ikut window, bukan tipe.
+export function dashboard(kos, today = DEFAULT_TODAY(), opts = {}) {
+  const WIN = Math.min(365, Math.max(7, Math.round(Number(opts.days)) || 30));
+  const typeId = Number(opts.type) || 0;
   const wStart = addDays(today, -WIN + 1);
   const wEnd = addDays(today, 1); // exclusive
-  const rooms = db.prepare('SELECT r.id, r.number, t.name type FROM rooms r JOIN room_types t ON t.id=r.room_type_id WHERE r.archived=0 AND r.kos_id=? ORDER BY r.number').all(kos);
+  const rooms = db.prepare('SELECT r.id, r.number, t.name type FROM rooms r JOIN room_types t ON t.id=r.room_type_id WHERE r.archived=0 AND r.kos_id=?'+(typeId?' AND r.room_type_id=?':'')+' ORDER BY r.number').all(...[kos, typeId].filter(Boolean));
   const activeIds = new Set(rooms.map((r) => r.id));
-  const bookings = db.prepare("SELECT b.*, t.name type FROM bookings b JOIN rooms r ON r.id=b.room_id JOIN room_types t ON t.id=r.room_type_id WHERE b.status!='cancelled' AND b.kos_id=?").all(kos);
+  const bookings = db.prepare("SELECT b.*, t.name type FROM bookings b JOIN rooms r ON r.id=b.room_id JOIN room_types t ON t.id=r.room_type_id WHERE b.status!='cancelled' AND b.kos_id=?").all(kos).filter((b) => activeIds.has(b.room_id) || !typeId);
 
   // okupansi: malam terisi di window / (kamar aktif * hari). check_out eksklusif.
   let occNights = 0;
@@ -42,10 +44,11 @@ export function dashboard(kos, today = DEFAULT_TODAY()) {
     return { id: r.id, number: r.number, type: r.type, occupied, upcoming: next, emptyDays: occupied ? 0 : last ? diffDays(last, today) : null };
   });
 
-  // arus kas 6 bulan: income, expense (operasional), capital (investasi). net = income - expense.
+  // arus kas NM bulan: income, expense (operasional), capital (investasi). net = income - expense.
   const ym = today.slice(0, 7);
   const months = [];
-  for (let i = 5; i >= 0; i--) { const d = new Date(ym + '-01T00:00:00Z'); d.setUTCMonth(d.getUTCMonth() - i); months.push(iso(d).slice(0, 7)); }
+  const NM = Math.min(12, Math.max(6, Math.ceil(WIN / 30)));
+  for (let i = NM - 1; i >= 0; i--) { const d = new Date(ym + '-01T00:00:00Z'); d.setUTCMonth(d.getUTCMonth() - i); months.push(iso(d).slice(0, 7)); }
   const rows = db.prepare('SELECT substr(t.date,1,7) m, c.kind k, SUM(t.amount) s FROM transactions t JOIN categories c ON c.id=t.category_id WHERE t.kos_id=? AND t.date>=? GROUP BY m, k').all(kos, months[0] + '-01');
   const cashflow = months.map((m) => {
     const g = (k) => rows.find((r) => r.m === m && r.k === k)?.s ?? 0;
@@ -78,10 +81,10 @@ export function dashboard(kos, today = DEFAULT_TODAY()) {
     if (r.emptyDays === null) insights.push({ level: 'info', text: `Kamar ${r.number} (${r.type}) belum pernah disewa.` });
     else if (r.emptyDays >= 3) insights.push({ level: 'warn', text: `Kamar ${r.number} (${r.type}) kosong ${r.emptyDays} hari. Pertimbangkan promo.` });
   }
-  if (rooms.length && occupancy < 50) insights.push({ level: 'warn', text: `Okupansi 30 hari cuma ${occupancy}%. Cek harga dan promo.` });
+  if (rooms.length && occupancy < 50) insights.push({ level: 'warn', text: `Okupansi ${WIN} hari cuma ${occupancy}%. Cek harga dan promo.` });
   if (receivable.overdue) insights.unshift({ level: 'urgent', text: `${receivable.overdue} booking belum lunas padahal sudah masuk. Tagih.` });
-  if (promoSplit.promo > 0 && promoSplit.promo > promoSplit.normal) insights.push({ level: 'warn', text: 'Mayoritas omzet 30 hari datang dari promo. Pastikan margin masih aman.' });
+  if (promoSplit.promo > 0 && promoSplit.promo > promoSplit.normal) insights.push({ level: 'warn', text: `Mayoritas omzet ${WIN} hari datang dari promo. Pastikan margin masih aman.` });
   if (!insights.length) insights.push({ level: 'ok', text: 'Aman. Belum ada sinyal bahaya.' });
 
-  return { today, occupancy, roomCount: rooms.length, byType, promoSplit, emptyRooms, cashflow, expenseByCat, payback, receivable, depositHeld, insights };
+  return { today, occupancy, windowDays: WIN, months: NM, roomCount: rooms.length, byType, promoSplit, emptyRooms, cashflow, expenseByCat, payback, receivable, depositHeld, insights };
 }
