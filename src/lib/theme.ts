@@ -9,4 +9,4 @@ export const C = {
   grid: '#71717a33',
   tip: { background: 'rgb(var(--surface))', border: '1px solid rgb(var(--line))', borderRadius: 12, color: 'rgb(var(--tx))' },
 };
-export const roomColor = (i) => C.rooms[i % C.rooms.length];
+export const roomColor = (i: number) => C.rooms[i % C.rooms.length];

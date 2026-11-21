@@ -6,12 +6,13 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc --noEmit && vite build",
     "start": "node server/index.js",
     "seed": "node scripts/seed.js",
     "test": "node --test test/*.test.js",
     "seed:admin": "node scripts/seed-admin.js",
-    "set:password": "node scripts/set-password.js"
+    "set:password": "node scripts/set-password.js",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
@@ -24,10 +25,13 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.6.2",
     "postcss": "^8.5.33",
     "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3",
     "vite": "^5.4.21"
   }
 }

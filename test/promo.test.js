@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { promoCheck } from '../src/lib/promo.js';
+import { promoCheck } from '../src/lib/promo.ts';
 
 test('promo rugi kalau nggak nutup biaya variabel', () => {
   assert.equal(promoCheck({ normal: 500000, promo: 300000, varPerNight: 350000, emptyNights: 10 }).worth, false);

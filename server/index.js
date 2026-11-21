@@ -7,7 +7,7 @@ import { isResource, list, create, createBatch, payBooking, update, remove, quot
 
 const PORT = process.env.PORT || 3005;
 const DIST = 'dist';
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json' };
 
 // ponytail: rate limit login in-memory per IP (reset saat restart; di balik proxy IP = proxy). Upgrade: baca X-Forwarded-For terpercaya.
 const fails = new Map();
@@ -67,7 +67,9 @@ function staticFile(res, pathname) {
   const safe = file.startsWith(root + sep);
   const target = safe && existsSync(file) && statSync(file).isFile() ? file : join(root, 'index.html');
   if (!existsSync(target)) { res.writeHead(404); return res.end('Build dulu: npm run build'); }
-  res.writeHead(200, { 'Content-Type': MIME[extname(target)] || 'application/octet-stream' });
+  // index.html & sw.js harus selalu segar (update PWA); aset Vite ber-hash aman di-cache lama.
+  const cache = target.startsWith(join(root, 'assets') + sep) ? 'public, max-age=31536000, immutable' : 'no-cache';
+  res.writeHead(200, { 'Content-Type': MIME[extname(target)] || 'application/octet-stream', 'Cache-Control': cache });
   res.end(readFileSync(target));
 }
 

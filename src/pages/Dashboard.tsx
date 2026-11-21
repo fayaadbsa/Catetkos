@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react';
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Legend, PieChart, Pie, Cell } from 'recharts';
-import { api, rp } from '../lib/api.js';
-import { C, SEM, roomColor } from '../lib/theme.js';
+import { api, rp } from '../lib/api';
+import { C, SEM, roomColor } from '../lib/theme';
 import { AlertOctagon, AlertTriangle, Info, CheckCircle2 } from 'lucide-react';
-import { Card, Stat, PageHeader } from './ui.jsx';
+import { Card, Stat, PageHeader } from '../components/ui';
 
 const MON = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-const mon = (m) => `${MON[+m.slice(5) - 1]} ${m.slice(2, 4)}`;
-const short = (v) => (Math.abs(v) >= 1e6 ? `${String(+(v / 1e6).toFixed(1)).replace('.', ',')}jt` : `${Math.round(v / 1e3)}rb`);
+const mon = (m: string) => `${MON[+m.slice(5) - 1]} ${m.slice(2, 4)}`;
+const short = (v: number) => (Math.abs(v) >= 1e6 ? `${String(+(v / 1e6).toFixed(1)).replace('.', ',')}jt` : `${Math.round(v / 1e3)}rb`);
 
 export default function Dashboard() {
-  const [d, setD] = useState(null);
+  const [d, setD] = useState<any>(null);
   useEffect(() => { api('/dashboard').then(setD).catch(() => {}); }, []);
   if (!d) return <p className="text-mut">Lagi ngitung duit...</p>;
   const pb = d.payback;
-  const LV = { urgent: [AlertOctagon, 'text-danger'], warn: [AlertTriangle, 'text-warn'], info: [Info, 'text-mut'], ok: [CheckCircle2, 'text-ok'] };
-  const types = Object.entries(d.byType).map(([name, v]) => ({ name, value: v.revenue }));
-  const typeTotal = types.reduce((a, t) => a + t.value, 0);
+  const LV: Record<string, [typeof Info, string]> = { urgent: [AlertOctagon, 'text-danger'], warn: [AlertTriangle, 'text-warn'], info: [Info, 'text-mut'], ok: [CheckCircle2, 'text-ok'] };
+  const types = Object.entries<any>(d.byType).map(([name, v]) => ({ name, value: v.revenue }));
+  const typeTotal = types.reduce((a: number, t) => a + t.value, 0);
   return (
     <div className="space-y-4">
       <PageHeader title="Dashboard" desc="Kondisi kos 30 hari terakhir." />
@@ -34,7 +34,7 @@ export default function Dashboard() {
         <h3 className="text-base font-semibold">Status kamar</h3>
         <p className="mb-3 text-sm text-mut">Titik hijau = ada penghuni. Abu = kosong.</p>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-          {d.emptyRooms.map((r) => {
+          {d.emptyRooms.map((r: any) => {
             return (
               <div key={r.id} className="rounded-md border p-3"
                 style={r.occupied ? { borderColor: SEM.ok, background: SEM.ok + '1f' } : { borderColor: 'rgb(var(--line))', background: 'rgb(var(--soft) / .6)' }}>
@@ -54,17 +54,17 @@ export default function Dashboard() {
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <h3 className="mb-2 text-base font-semibold">Duit masuk vs keluar (6 bulan)</h3>
-          <div className="h-64">
+          <div className="h-56 md:h-64">
             <ResponsiveContainer>
               <BarChart data={d.cashflow} barGap={4}>
                 <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
                 <XAxis dataKey="month" stroke={C.axis} tickFormatter={mon} tickMargin={8} />
                 <YAxis stroke={C.axis} tickFormatter={short} />
-                <Tooltip formatter={(v) => rp(v)} contentStyle={C.tip} cursor={{ fill: '#8a7a6622' }} />
+                <Tooltip formatter={(v) => rp(Number(v))} contentStyle={C.tip} cursor={{ fill: '#8a7a6622' }} />
                 <Legend formatter={(v) => <span style={{ color: 'rgb(var(--tx))' }}>{v}</span>} />
                 <Bar isAnimationActive={false} dataKey="income" name="Pemasukan" fill={C.income} radius={[6, 6, 0, 0]} />
                 <Bar isAnimationActive={false} dataKey="expense" name="Pengeluaran" fill={C.expense} radius={[6, 6, 0, 0]} />
-                {d.cashflow.some((m) => m.capital > 0) && <Bar isAnimationActive={false} dataKey="capital" name="Modal" fill={C.capital} radius={[6, 6, 0, 0]} />}
+                {d.cashflow.some((m: any) => m.capital > 0) && <Bar isAnimationActive={false} dataKey="capital" name="Modal" fill={C.capital} radius={[6, 6, 0, 0]} />}
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -80,7 +80,7 @@ export default function Dashboard() {
                     {types.map((t, i) => <Cell key={t.name} fill={roomColor(i)} />)}
                   </Pie>
                   <text x="50%" y="42%" textAnchor="middle" dominantBaseline="middle" fill="rgb(var(--tx))" fontWeight="800" fontSize="15">{short(typeTotal)}</text>
-                  <Tooltip formatter={(v) => rp(v)} contentStyle={C.tip} />
+                  <Tooltip formatter={(v) => rp(Number(v))} contentStyle={C.tip} />
                   <Legend formatter={(v) => { const t = types.find((x) => x.name === v); return <span style={{ color: 'rgb(var(--tx))' }}>{v}{t && typeTotal ? ` · ${Math.round((t.value / typeTotal) * 100)}%` : ''}</span>; }} />
                 </PieChart>
               </ResponsiveContainer>
@@ -95,8 +95,8 @@ export default function Dashboard() {
           <div className="h-56"><ResponsiveContainer><BarChart data={d.expenseByCat} layout="vertical" margin={{ left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={C.grid} horizontal={false} />
             <XAxis type="number" stroke={C.axis} tickFormatter={short} /><YAxis type="category" dataKey="name" stroke={C.axis} width={80} />
-            <Tooltip formatter={(v) => rp(v)} contentStyle={C.tip} cursor={{ fill: '#8a7a6622' }} />
-            <Bar dataKey="value" name="Biaya" radius={[0, 6, 6, 0]}>{d.expenseByCat.map((t, i) => <Cell key={t.name} fill={roomColor(i)} />)}</Bar>
+            <Tooltip formatter={(v) => rp(Number(v))} contentStyle={C.tip} cursor={{ fill: '#8a7a6622' }} />
+            <Bar dataKey="value" name="Biaya" radius={[0, 6, 6, 0]}>{d.expenseByCat.map((t: any, i: number) => <Cell key={t.name} fill={roomColor(i)} />)}</Bar>
           </BarChart></ResponsiveContainer></div>
         ) : <p className="text-sm text-mut">Belum ada biaya 30 hari ini.</p>}
       </Card>
@@ -104,7 +104,7 @@ export default function Dashboard() {
       <Card>
         <h3 className="mb-2 text-base font-semibold">Bisik-bisik dashboard</h3>
         <ul className="space-y-2 text-sm text-tx">
-          {d.insights.map((x, i) => {
+          {d.insights.map((x: any, i: number) => {
             const [Icon, cls] = LV[x.level] || LV.info;
             return <li key={i} className="flex gap-2"><Icon size={16} className={`mt-0.5 shrink-0 ${cls}`} aria-hidden />{x.text}</li>;
           })}

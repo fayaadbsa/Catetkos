@@ -1,8 +1,8 @@
 // Token warna semantik (CSS variable di index.css). Ganti tema = ganti variabel, bukan komponen.
-const t = (n) => `rgb(var(--${n}) / <alpha-value>)`;
+const t = (n: string) => `rgb(var(--${n}) / <alpha-value>)`;
 export default {
   darkMode: 'class',
-  content: ['./index.html', './src/**/*.{js,jsx}'],
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'] },

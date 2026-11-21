@@ -1,19 +1,23 @@
 import { useState } from 'react';
 import { Sun, Moon, LogOut } from 'lucide-react';
-import { api, cn } from '../lib/api.js';
-import { Button, Card, Input, Label, PageHeader } from './ui.jsx';
+import { api, cn, errMsg } from '../lib/api';
+import { useAuth } from '../lib/auth';
+import { useDarkMode } from '../lib/dark';
+import { Button, Card, Input, Label, PageHeader } from '../components/ui';
 
 // Halaman Akun: tema, ganti password, keluar. Ganti password sukses = semua sesi dicabut, login ulang.
-export default function Account({ me, dark, setDark, onLogout }) {
+export default function Account() {
+  const { me, logout: onLogout } = useAuth();
+  const [dark, setDark] = useDarkMode();
   const [f, setF] = useState({ oldPassword: '', newPassword: '' });
   const [err, setErr] = useState('');
   const [ok, setOk] = useState(false);
-  const submit = async (e) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setErr('');
     try { await api('/password', { body: f }); setOk(true); setTimeout(onLogout, 800); }
-    catch (x) { setErr(x.message); }
+    catch (x) { setErr(errMsg(x)); }
   };
-  const themes = [[false, 'Terang', Sun], [true, 'Gelap', Moon]];
+  const themes = [[false, 'Terang', Sun], [true, 'Gelap', Moon]] as const;
   return (
     <div className="space-y-5">
       <PageHeader title="Akun" desc={`Masuk sebagai ${me?.username || ''}.`} />
