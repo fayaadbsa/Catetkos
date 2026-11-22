@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useList } from '../lib/useList';
-import { Tabs } from '../components/ui';
+import { FilterButton, FilterChip, FilterGroup, FilterSheet, useFilterSheet, type ActiveFilter } from '../components/ui';
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Legend, PieChart, Pie, Cell } from 'recharts';
 import { api, rp } from '../lib/api';
 import { C, SEM, roomColor } from '../lib/theme';
@@ -13,9 +13,14 @@ const short = (v: number) => (Math.abs(v) >= 1e6 ? `${String(+(v / 1e6).toFixed(
 
 export default function Dashboard() {
   const [d, setD] = useState<any>(null);
-  const [days, setDays] = useState(30);
-  const [type, setType] = useState(0);
+  const f = useFilterSheet({ days: 30, type: 0 });
+  const { days, type } = f.applied;
   const [tipe] = useList('room-types');
+  const RANGE: [number, string][] = [[7, '7 hari'], [30, '30 hari'], [90, '3 bulan'], [365, '1 tahun']];
+  const active: ActiveFilter[] = [
+    ...(days !== 30 ? [{ key: 'd', label: RANGE.find((r) => r[0] === days)![1], onRemove: () => f.set({ days: 30, type }) }] : []),
+    ...(type ? [{ key: 't', label: tipe.find((t) => t.id === type)?.name ?? 'Tipe', onRemove: () => f.set({ days, type: 0 }) }] : []),
+  ];
   useEffect(() => { api(`/dashboard?days=${days}&type=${type}`).then(setD).catch(() => {}); }, [days, type]);
   if (!d) return <p className="text-mut">Lagi ngitung duit...</p>;
   const pb = d.payback;
@@ -25,10 +30,16 @@ export default function Dashboard() {
   return (
     <div className="space-y-4">
       <PageHeader title="Dashboard" desc={`Kondisi kos ${d.windowDays} hari terakhir.`} />
-      <div className="flex flex-wrap items-center gap-2">
-        <Tabs label="Rentang waktu" value={days} onChange={setDays} items={[[7, '7 hari'], [30, '30 hari'], [90, '3 bulan'], [365, '1 tahun']]} />
-        <Tabs label="Tipe kamar" value={type} onChange={setType} items={[[0, 'Semua tipe'], ...tipe.filter((t) => !t.archived).map((t) => [t.id, t.name] as [number, string])]} />
-      </div>
+      <FilterButton onClick={f.show} filters={active} />
+      {f.open && (
+        <FilterSheet onClose={f.close} onReset={f.reset} onApply={f.apply}>
+          <FilterGroup label="Rentang waktu">{RANGE.map(([v, l]) => <FilterChip key={v} selected={f.draft.days === v} onClick={() => f.setDraft({ ...f.draft, days: v })}>{l}</FilterChip>)}</FilterGroup>
+          <FilterGroup label="Tipe kamar">
+            <FilterChip selected={!f.draft.type} onClick={() => f.setDraft({ ...f.draft, type: 0 })}>Semua</FilterChip>
+            {tipe.filter((t) => !t.archived).map((t) => <FilterChip key={t.id} selected={f.draft.type === t.id} onClick={() => f.setDraft({ ...f.draft, type: t.id })}>{t.name}</FilterChip>)}
+          </FilterGroup>
+        </FilterSheet>
+      )}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
         <Stat label="Okupansi" value={`${d.occupancy}%`} hint={`dari ${d.roomCount} kamar aktif`} />
         <Stat label="Omzet promo" value={rp(d.promoSplit.promo)} />

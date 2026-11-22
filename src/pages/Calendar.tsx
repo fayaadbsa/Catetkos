@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { api, rp } from '../lib/api';
 import { useList } from '../lib/useList';
-import { Badge, Button, Card, Modal, PageHeader, Tabs } from '../components/ui';
+import { Badge, Button, Card, FilterButton, FilterChip, FilterGroup, FilterSheet, Modal, PageHeader, useFilterSheet } from '../components/ui';
 import type { Row } from '../lib/types';
 
 const MON = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -16,14 +16,24 @@ export default function Calendar() {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [rooms] = useList('rooms');
   const [tipe] = useList('room-types');
-  const [type, setType] = useState(0);
-  const [sel, setSel] = useState<Row | null>(null);
+  const fs = useFilterSheet({ type: 0 });
+  const type = fs.applied.type;
+  const [sel, setSel] = useState<Row[] | null>(null);
   const refs = useRef<Record<string, HTMLElement | null>>({});
   useEffect(() => { api<Row[]>('/bookings').then(setRows).catch(() => setRows([])); }, []);
 
   const now = new Date();
   const cur = ymd(now.getFullYear(), now.getMonth(), 1).slice(0, 7);
   const bs = (rows || []).filter((b) => b.status !== 'cancelled');
+  // Penghuni sama + kamar sama + tanggal nyambung (check-out = check-in berikutnya) = satu penginapan panjang.
+  const stays = useMemo(() => {
+    const out: { id: number; room_id: number; guest_id: number; guest_name: string; check_in: string; check_out: string; parts: Row[] }[] = [];
+    for (const b of [...bs].sort((x, y) => x.check_in.localeCompare(y.check_in))) {
+      const last = out.find((s) => s.room_id === b.room_id && s.guest_id === b.guest_id && s.check_out === b.check_in);
+      if (last) { last.check_out = b.check_out; last.parts.push(b); } else out.push({ id: b.id, room_id: b.room_id, guest_id: b.guest_id, guest_name: b.guest_name, check_in: b.check_in, check_out: b.check_out, parts: [b] });
+    }
+    return out;
+  }, [rows]); // eslint-disable-line react-hooks/exhaustive-deps
   const months = useMemo(() => {
     const first = bs.map((b) => b.check_in.slice(0, 7)).sort()[0] ?? cur;
     const last = bs.map((b) => b.check_out.slice(0, 7)).sort().pop() ?? cur;
@@ -51,7 +61,15 @@ export default function Calendar() {
           <Button variant="outline" aria-label="Bulan berikutnya" onClick={() => step(1)}><ChevronRight size={16} /></Button>
         </div>
       </PageHeader>
-      <Tabs label="Tipe kamar" value={type} onChange={setType} items={[[0, 'Semua tipe'], ...tipe.filter((t) => !t.archived).map((t) => [t.id, t.name] as [number, string])]} />
+      <FilterButton onClick={fs.show} filters={type ? [{ key: 't', label: tipe.find((t) => t.id === type)?.name ?? 'Tipe', onRemove: () => fs.set({ type: 0 }) }] : []} />
+      {fs.open && (
+        <FilterSheet onClose={fs.close} onReset={fs.reset} onApply={fs.apply}>
+          <FilterGroup label="Tipe kamar">
+            <FilterChip selected={!fs.draft.type} onClick={() => fs.setDraft({ type: 0 })}>Semua</FilterChip>
+            {tipe.filter((t) => !t.archived).map((t) => <FilterChip key={t.id} selected={fs.draft.type === t.id} onClick={() => fs.setDraft({ type: t.id })}>{t.name}</FilterChip>)}
+          </FilterGroup>
+        </FilterSheet>
+      )}
       {!rows ? <p className="text-mut">Lagi buka kalender...</p> : months.map((ym) => {
         const y = +ym.slice(0, 4), m = +ym.slice(5) - 1, n = new Date(y, m + 1, 0).getDate();
         const first = ymd(y, m, 1), nextFirst = m === 11 ? ymd(y + 1, 0, 1) : ymd(y, m + 1, 1);
@@ -71,11 +89,11 @@ export default function Calendar() {
                     <div className="pr-1 text-sm font-semibold">{r.number}<span className="block text-[10px] font-normal text-mut">{r.type_name}</span></div>
                     <div className="relative h-8 rounded bg-soft/60" style={{ gridColumn: `2 / span ${n}` }}>
                       {ymd(now.getFullYear(), now.getMonth(), now.getDate()).slice(0, 7) === ym && <div className="absolute inset-y-0 w-px bg-tx/40" style={{ left: `${((now.getDate() - 0.5) / n) * 100}%` }} />}
-                      {bs.filter((b) => b.room_id === r.id && b.check_in < nextFirst && b.check_out > first).map((b) => {
+                      {stays.filter((b) => b.room_id === r.id && b.check_in < nextFirst && b.check_out > first).map((b) => {
                         const s = b.check_in < first ? 0 : +b.check_in.slice(8) - 1;
                         const e = b.check_out >= nextFirst ? n : +b.check_out.slice(8) - 1; // check-out eksklusif
                         return (
-                          <button key={b.id} onClick={() => setSel(b)} title={`${b.guest_name}: ${dm(b.check_in)} → ${dm(b.check_out)}`}
+                          <button key={b.id} onClick={() => setSel(b.parts)} title={`${b.guest_name}: ${dm(b.check_in)} → ${dm(b.check_out)}`}
                             className="absolute inset-y-0.5 overflow-hidden whitespace-nowrap rounded px-1.5 text-left text-xs font-semibold text-white"
                             style={{ left: `${(s / n) * 100}%`, width: `calc(${((e - s) / n) * 100}% - 2px)`, background: color(b.guest_id) }}>{b.guest_name}</button>
                         );
@@ -89,12 +107,20 @@ export default function Calendar() {
         );
       })}
       {sel && (
-        <Modal title={sel.guest_name} onClose={() => setSel(null)} size="sm">
+        <Modal title={sel[0].guest_name} onClose={() => setSel(null)} size="sm">
           <div className="space-y-2 text-sm">
-            <p>Kamar {sel.room_number} · {dm(sel.check_in)} → {dm(sel.check_out)}</p>
-            <p>Tagihan {rp(sel.price_total)} · {sel.paid >= sel.price_total ? <Badge color="#16a34a">Lunas</Badge> : <Badge color="#ca8a04">Belum lunas</Badge>}</p>
-            {sel.deposit > 0 && <p>Deposit {rp(sel.deposit)}: {sel.deposit_returned_date ? `dikembalikan ${dm(sel.deposit_returned_date)}` : sel.deposit_paid_date ? 'dipegang' : 'belum diterima'}</p>}
-            {sel.note && <p className="text-mut">{sel.note}</p>}
+            <p>Kamar {sel[0].room_number} · {dm(sel[0].check_in)} → {dm(sel[sel.length - 1].check_out)} ({sel.length} bulan)</p>
+            <p>Total {rp(sel.reduce((a, b) => a + b.price_total, 0))}</p>
+            <ul className="divide-y divide-line rounded-md border border-line">
+              {sel.map((b) => (
+                <li key={b.id} className="flex items-center justify-between gap-2 px-3 py-2">
+                  <span>{dm(b.check_in)} → {dm(b.check_out)}</span>
+                  {b.paid >= b.price_total ? <Badge color="#16a34a">Lunas</Badge> : <Badge color="#ca8a04">Belum lunas</Badge>}
+                </li>
+              ))}
+            </ul>
+            {sel[0].deposit > 0 && <p>Deposit {rp(sel[0].deposit)}: {sel[0].deposit_returned_date ? `dikembalikan ${dm(sel[0].deposit_returned_date)}` : sel[0].deposit_paid_date ? 'dipegang' : 'belum diterima'}</p>}
+            {sel[0].note && <p className="text-mut">{sel[0].note}</p>}
           </div>
         </Modal>
       )}

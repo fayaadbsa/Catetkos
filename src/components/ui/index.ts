@@ -5,3 +5,4 @@ export * from './Modal';
 export * from './Toaster';
 export * from './Tabs';
 export * from './DataTable';
+export * from './Filter';
