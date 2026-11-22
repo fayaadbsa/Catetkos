@@ -1,5 +1,5 @@
 // Booking per bulan: 1 baris = 1 bulan. Form bisa bikin beberapa bulan sekaligus (tercatat per bulan).
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Plus, Pencil, Trash2, CalendarPlus, Check, Ban } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api, rp, toast, today, errMsg } from '../lib/api';
@@ -108,6 +108,18 @@ function PayDialog({ title, info, onConfirm, onClose }: { title: string; info: s
   );
 }
 
+interface Stay { id: number; room_number: string; guest_id: number; guest_name: string; check_in: string; check_out: string; parts: Row[] }
+// Penghuni sama + kamar sama + tanggal nyambung = satu penginapan. Urut per kamar, lalu tgl masuk.
+function groupStays(rows: Row[]): Stay[] {
+  const out: Stay[] = [];
+  for (const b of [...rows].filter((x) => x.status !== 'cancelled').sort((x, y) => x.check_in.localeCompare(y.check_in))) {
+    const last = out.find((t) => t.parts[0].room_id === b.room_id && t.guest_id === b.guest_id && t.check_out === b.check_in);
+    if (last) { last.check_out = b.check_out; last.parts.push(b); } else out.push({ id: b.id, room_number: b.room_number, guest_id: b.guest_id, guest_name: b.guest_name, check_in: b.check_in, check_out: b.check_out, parts: [b] });
+  }
+  const cancelled = rows.filter((x) => x.status === 'cancelled').map((b) => ({ id: b.id, room_number: b.room_number, guest_id: b.guest_id, guest_name: b.guest_name, check_in: b.check_in, check_out: b.check_out, parts: [b] }));
+  return [...out, ...cancelled].sort((a, b) => a.room_number.localeCompare(b.room_number, undefined, { numeric: true }) || a.check_in.localeCompare(b.check_in));
+}
+
 export default function Bookings() {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [rooms] = useList('rooms');
@@ -116,6 +128,7 @@ export default function Bookings() {
   const [dlg, setDlg] = useState<Dlg>(null);
   const nav = useNavigate(); // {k:'new'|'edit'|'rent'|'dep', ...}
   const [filter, setFilter] = useState<'all' | 'active' | 'unpaid'>('all');
+  const [stayId, setStayId] = useState<number | null>(null);
   const load = () => api<Row[]>('/bookings').then(setRows).catch((e) => toast(errMsg(e), true));
   useEffect(() => { load(); }, []);
   const active = rooms.filter((r) => !r.archived);
@@ -124,7 +137,9 @@ export default function Bookings() {
   const del = (b: Row) => { if (confirm(`Hapus booking ${b.guest_name} (${dm(b.check_in)})?`)) run(() => api(`/bookings/${b.id}`, { method: 'DELETE' }), 'Terhapus'); };
   const depPatch = (b: Row, p: Record<string, unknown>) => run(() => api(`/bookings/${b.id}`, { method: 'PUT', body: p }), 'Deposit diperbarui');
 
-  const shown = (rows || []).filter((b) => filter === 'all' || (filter === 'unpaid' && b.status !== 'cancelled' && b.paid < b.price_total) || (filter === 'active' && b.status === 'checked_in'));
+  const stays = useMemo(() => groupStays(rows || []), [rows]);
+  const shown = stays.filter((t) => filter === 'all' || (filter === 'unpaid' && t.parts.some((b) => b.status !== 'cancelled' && b.paid < b.price_total)) || (filter === 'active' && t.parts.some((b) => b.status === 'checked_in')));
+  const stay = stays.find((t) => t.id === stayId) || null;
   const extend = (b: Row) => setDlg({ k: 'new', init: { room_id: b.room_id, guest_id: b.guest_id, check_in: b.check_out, deposit: 0 } });
 
   const rent = (b: Row) => {
@@ -139,13 +154,19 @@ export default function Bookings() {
     return <Button variant="outline" className="min-h-9 py-1" onClick={() => setDlg({ k: 'dep', b })}>Terima {rp(b.deposit)}</Button>;
   };
 
-  const cols: Column<Row>[] = [
-    { key: 'guest_name', label: 'Tamu', fmt: (b) => <span className="font-semibold">{b.guest_name} <Badge color={STATUS[b.status][1]}>{STATUS[b.status][0]}</Badge></span> },
-    { key: 'room_number', label: 'Kamar' },
-    { key: 'period', label: 'Periode', fmt: (b) => `${dm(b.check_in)} → ${dm(b.check_out)}` },
-    { key: 'price_total', label: 'Tagihan', fmt: (b) => <>{rp(b.price_total)}{b.promo_id && <span className="ml-1 text-xs font-semibold text-ok">promo</span>}</> },
-    { key: 'rent', label: 'Sewa', fmt: rent },
-    { key: 'dep', label: 'Deposit', fmt: dep },
+  const stayStatus = (t: Stay) => { const bs = t.parts; return bs.every((b) => b.status === 'cancelled') ? 'cancelled' : bs.some((b) => b.status === 'checked_in') ? 'checked_in' : bs.every((b) => b.status === 'checked_out') ? 'checked_out' : 'booked'; };
+  const paidInfo = (t: Stay) => {
+    if (t.parts[0].status === 'cancelled') return <span className="text-mut">-</span>;
+    const due = t.parts.reduce((a, b) => a + b.price_total - b.paid, 0), n = t.parts.filter((b) => b.paid >= b.price_total).length;
+    return due <= 0 ? <Badge color={SEM.ok}>Lunas semua</Badge> : <Badge color={SEM.warn}>{n}/{t.parts.length} lunas · kurang {rp(due)}</Badge>;
+  };
+  const cols: Column<Stay>[] = [
+    { key: 'room_number', label: 'Kamar', fmt: (t) => <span className="font-semibold">Kamar {t.room_number}</span> },
+    { key: 'guest_name', label: 'Penghuni', fmt: (t) => <span className="font-semibold">{t.guest_name} <Badge color={STATUS[stayStatus(t)][1]}>{STATUS[stayStatus(t)][0]}</Badge></span> },
+    { key: 'period', label: 'Periode', fmt: (t) => `${dm(t.check_in)} → ${dm(t.check_out)} (${t.parts.length} bln)` },
+    { key: 'total', label: 'Tagihan', fmt: (t) => rp(t.parts.reduce((a, b) => a + b.price_total, 0)) },
+    { key: 'rent', label: 'Sewa', fmt: paidInfo },
+    { key: 'dep', label: 'Deposit', fmt: (t) => dep(t.parts.find((b) => b.deposit) || t.parts[0]) },
   ];
 
   return (
@@ -154,16 +175,32 @@ export default function Bookings() {
         {active.length > 0 && <Button onClick={() => setDlg({ k: 'new' })}><Plus size={16} /> Booking baru</Button>}
       </PageHeader>
       <Tabs label="Filter booking" value={filter} onChange={setFilter} items={[['all', 'Semua'], ['active', 'Menginap'], ['unpaid', 'Belum lunas']]} />
-      <DataTable rows={rows && shown} columns={cols} rowKey={(b) => b.id}
+      <DataTable rows={rows && shown} columns={cols} rowKey={(t) => t.id}
         empty={<><p>{filter !== 'all' ? 'Tidak ada yang cocok.' : active.length ? 'Belum ada booking.' : 'Belum ada kamar aktif. Bikin kamar dulu.'}</p>
           {!active.length && <div className="mt-3"><Button onClick={() => nav('/rooms')}>Bikin kamar</Button></div>}</>}
-        actions={(b) => (
+        actions={(t) => (
           <>
-            {b.status !== 'cancelled' && <Button variant="ghost" className="text-tx" onClick={() => extend(b)} title="Perpanjang 1 bulan dari tgl keluar" aria-label="Perpanjang 1 bulan"><CalendarPlus size={15} /> +1 bln</Button>}
-            <Button variant="ghost" aria-label="Edit" title="Edit" onClick={() => setDlg({ k: 'edit', b })}><Pencil size={15} /></Button>
-            <Button variant="ghost" aria-label="Hapus" title="Hapus" className="text-danger" onClick={() => del(b)}><Trash2 size={15} /></Button>
+            {t.parts[0].status !== 'cancelled' && <Button variant="ghost" className="text-tx" onClick={() => extend(t.parts[t.parts.length - 1])} title="Perpanjang 1 bulan dari tgl keluar" aria-label="Perpanjang 1 bulan"><CalendarPlus size={15} /> +1 bln</Button>}
+            <Button variant="outline" onClick={() => setStayId(t.id)}>Rincian</Button>
           </>
         )} />
+
+      {stay && (
+        <Modal title={`${stay.guest_name} · Kamar ${stay.room_number}`} onClose={() => setStayId(null)}>
+          <p className="mb-3 text-sm text-mut">{dm(stay.check_in)} → {dm(stay.check_out)} · {stay.parts.length} bulan · {rp(stay.parts.reduce((a, b) => a + b.price_total, 0))}</p>
+          <ul className="space-y-2">
+            {stay.parts.map((b) => (
+              <li key={b.id} className="rounded-md border border-line p-3">
+                <div className="flex items-center justify-between gap-2"><span className="font-semibold">{dm(b.check_in)} → {dm(b.check_out)}</span><span className="text-sm">{rp(b.price_total)}{b.promo_id && <span className="ml-1 text-xs font-semibold text-ok">promo</span>}</span></div>
+                <div className="mt-2 flex flex-wrap items-start justify-between gap-2">
+                  <div className="flex flex-wrap gap-3 text-sm"><div><div className="text-xs text-mut">Sewa</div>{rent(b)}</div>{!!b.deposit && <div><div className="text-xs text-mut">Deposit</div>{dep(b)}</div>}</div>
+                  <div className="flex"><Button variant="ghost" aria-label="Edit" title="Edit" onClick={() => setDlg({ k: 'edit', b })}><Pencil size={15} /></Button><Button variant="ghost" aria-label="Hapus" title="Hapus" className="text-danger" onClick={() => del(b)}><Trash2 size={15} /></Button></div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Modal>
+      )}
 
       {dlg?.k === 'new' && <NewBooking init={dlg.init} rooms={active} guests={guests} onClose={() => setDlg(null)} onDone={done} />}
       {dlg?.k === 'edit' && <EditBooking b={dlg.b} rooms={rooms.filter((r) => !r.archived || r.id === dlg.b.room_id)} onClose={() => setDlg(null)} onDone={load} />}

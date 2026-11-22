@@ -8,6 +8,7 @@ import type { Row } from '../lib/types';
 const MON = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const PAL = ['#c2563a', '#2563eb', '#16a34a', '#9333ea', '#ca8a04', '#0891b2', '#db2777', '#65a30d', '#ea580c', '#4f46e5'];
 const ymd = (y: number, m: number, d: number) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+const ymdPlus = (s: string, n: number) => { const d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + n); return ymd(d.getFullYear(), d.getMonth(), d.getDate()); };
 const dm = (s: string) => `${+s.slice(8)} ${MON[+s.slice(5, 7) - 1].slice(0, 3)}`;
 
 // Bulan ditumpuk atas-bawah. Tiap kamar 1 baris, booking = bar dari check-in sampai check-out (check-out eksklusif). Warna per tamu.
@@ -45,16 +46,31 @@ export default function Calendar() {
     while (y * 12 + m <= end) { out.push(`${y}-${String(m + 1).padStart(2, '0')}`); m++; if (m > 11) { m = 0; y++; } }
     return out;
   }, [rows]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Kalender menerus: tanggal numpuk tanpa jeda bulan, tiap baris maks 7 hari (Senin-Minggu).
+  const weeks = useMemo(() => {
+    const d0 = new Date(+months[0].slice(0, 4), +months[0].slice(5) - 1, 1);
+    d0.setDate(d0.getDate() - ((d0.getDay() + 6) % 7));
+    const lastM = months[months.length - 1];
+    const endD = new Date(+lastM.slice(0, 4), +lastM.slice(5), 0);
+    const out: string[][] = [];
+    for (const d = new Date(d0); d <= endD || out.length === 0; ) {
+      const w: string[] = [];
+      for (let i = 0; i < 7; i++) { w.push(ymd(d.getFullYear(), d.getMonth(), d.getDate())); d.setDate(d.getDate() + 1); }
+      out.push(w);
+    }
+    return out;
+  }, [months]);
   const color = useMemo(() => { const ids = [...new Set(bs.map((b) => b.guest_id))]; return (id: number) => PAL[ids.indexOf(id) % PAL.length]; }, [rows]); // eslint-disable-line react-hooks/exhaustive-deps
   const active = rooms.filter((r) => !r.archived && (!type || r.room_type_id === type));
+  const td = ymd(now.getFullYear(), now.getMonth(), now.getDate());
 
   const go = (m: string) => refs.current[m]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   useEffect(() => { if (rows) refs.current[cur]?.scrollIntoView({ block: 'start' }); }, [rows]); // eslint-disable-line react-hooks/exhaustive-deps
-  const step = (n: number) => { const vis = months.findIndex((m) => { const r = refs.current[m]?.getBoundingClientRect(); return r && r.bottom > 140; }); const t = months[Math.min(months.length - 1, Math.max(0, vis + n))]; if (t) go(t); };
+  const step = (n: number) => { const vis = months.findIndex((m) => { const r = refs.current[m]?.getBoundingClientRect(); return r && r.top > 100; }); const i = vis < 0 ? months.length - 1 : vis; const t = months[Math.min(months.length - 1, Math.max(0, i + n - (n < 0 && vis >= 0 ? 0 : 0)))]; if (t) go(t); };
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Kalender" desc="Scroll atas-bawah buat ganti bulan. Bar = lama tamu nginep, 1 warna per tamu.">
+      <PageHeader title="Kalender" desc="Scroll atas-bawah. Bar = lama tamu nginep, 1 warna per tamu.">
         <div className="flex gap-1">
           <Button variant="outline" aria-label="Bulan sebelumnya" onClick={() => step(-1)}><ChevronLeft size={16} /></Button>
           <Button variant="outline" onClick={() => go(cur)}>Hari ini</Button>
@@ -70,42 +86,47 @@ export default function Calendar() {
           </FilterGroup>
         </FilterSheet>
       )}
-      {!rows ? <p className="text-mut">Lagi buka kalender...</p> : months.map((ym) => {
-        const y = +ym.slice(0, 4), m = +ym.slice(5) - 1, n = new Date(y, m + 1, 0).getDate();
-        const first = ymd(y, m, 1), nextFirst = m === 11 ? ymd(y + 1, 0, 1) : ymd(y, m + 1, 1);
-        const td = ymd(now.getFullYear(), now.getMonth(), now.getDate());
-        return (
-          <Card key={ym} className="overflow-x-auto p-0">
-            <div ref={(el) => { refs.current[ym] = el; }} className="scroll-mt-20 min-w-[44rem] p-3">
-              <h3 className="mb-2 text-base font-semibold">{MON[m]} {y}{ym === cur && <span className="ml-2 text-xs font-semibold text-ok">bulan ini</span>}</h3>
-              <div className="grid items-center gap-y-1" style={{ gridTemplateColumns: `4rem repeat(${n}, minmax(0, 1fr))` }}>
-                <div />
-                {Array.from({ length: n }, (_, i) => {
-                  const dow = new Date(y, m, i + 1).getDay();
-                  return <div key={i} className={`text-center text-[11px] leading-tight ${ymd(y, m, i + 1) === td ? 'font-bold text-tx' : dow === 0 ? 'text-danger' : 'text-mut'}`}>{i + 1}</div>;
-                })}
-                {active.map((r) => (
-                  <div key={r.id} className="contents">
-                    <div className="pr-1 text-sm font-semibold">{r.number}<span className="block text-[10px] font-normal text-mut">{r.type_name}</span></div>
-                    <div className="relative h-8 rounded bg-soft/60" style={{ gridColumn: `2 / span ${n}` }}>
-                      {ymd(now.getFullYear(), now.getMonth(), now.getDate()).slice(0, 7) === ym && <div className="absolute inset-y-0 w-px bg-tx/40" style={{ left: `${((now.getDate() - 0.5) / n) * 100}%` }} />}
-                      {stays.filter((b) => b.room_id === r.id && b.check_in < nextFirst && b.check_out > first).map((b) => {
-                        const s = b.check_in < first ? 0 : +b.check_in.slice(8) - 1;
-                        const e = b.check_out >= nextFirst ? n : +b.check_out.slice(8) - 1; // check-out eksklusif
-                        return (
-                          <button key={b.id} onClick={() => setSel(b.parts)} title={`${b.guest_name}: ${dm(b.check_in)} → ${dm(b.check_out)}`}
-                            className="absolute inset-y-0.5 overflow-hidden whitespace-nowrap rounded px-1.5 text-left text-xs font-semibold text-white"
-                            style={{ left: `${(s / n) * 100}%`, width: `calc(${((e - s) / n) * 100}% - 2px)`, background: color(b.guest_id) }}>{b.guest_name}</button>
-                        );
-                      })}
+      {!rows ? <p className="text-mut">Lagi buka kalender...</p> : (
+        <Card className="overflow-hidden p-0">
+          <div className="sticky top-14 z-10 grid grid-cols-[1.25rem_repeat(7,minmax(0,1fr))] border-b border-line bg-surface px-2 py-1.5 text-center text-[11px] font-semibold text-mut md:top-0">
+            <span />{['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map((d) => <span key={d} className={d === 'Min' ? 'text-danger' : ''}>{d}</span>)}
+          </div>
+          {weeks.map((w) => {
+            const ym1 = w.find((d) => d.endsWith('-01') && months.includes(d.slice(0, 7)));
+            const wFirst = w[0], wEnd = ymdPlus(w[6], 1);
+            return (
+              <div key={w[0]} ref={(el) => { if (ym1) refs.current[ym1.slice(0, 7)] = el; }} className="scroll-mt-28 border-b border-line px-2 pb-1.5 last:border-b-0">
+                {ym1 && <h3 className="pt-2 text-sm font-semibold">{MON[+ym1.slice(5, 7) - 1]} {ym1.slice(0, 4)}{ym1.slice(0, 7) === cur && <span className="ml-2 text-xs font-semibold text-ok">bulan ini</span>}</h3>}
+                <div className="grid grid-cols-[1.25rem_repeat(7,minmax(0,1fr))] items-center gap-y-0.5 pt-1">
+                  <span />
+                  {w.map((d) => (
+                    <div key={d} className={`text-center text-xs leading-6 ${d === td ? 'mx-auto w-6 rounded-full bg-primary font-bold text-primary-fg' : d.slice(5, 7) === w[0].slice(5, 7) || +d.slice(8) === 1 ? 'text-tx' : 'text-tx'}`}>
+                      {+d.slice(8) === 1 ? `1 ${MON[+d.slice(5, 7) - 1].slice(0, 3)}` : +d.slice(8)}
                     </div>
-                  </div>
-                ))}
+                  ))}
+                  {active.map((r) => (
+                    <div key={r.id} className="contents">
+                      <span className="text-[10px] font-semibold text-mut">{r.number}</span>
+                      <div className="relative h-6 rounded bg-soft/60" style={{ gridColumn: '2 / span 7' }}>
+                        {stays.filter((b) => b.room_id === r.id && b.check_in < wEnd && b.check_out > wFirst).map((b) => {
+                          const s = b.check_in <= wFirst ? 0 : w.indexOf(b.check_in);
+                          const e = b.check_out > w[6] ? 7 : w.indexOf(b.check_out); // check-out eksklusif
+                          const capL = b.check_in >= wFirst, capR = b.check_out <= w[6];
+                          return (
+                            <button key={b.id} onClick={() => setSel(b.parts)} title={`${b.guest_name}: ${dm(b.check_in)} → ${dm(b.check_out)}`}
+                              className={`absolute inset-y-0.5 overflow-hidden whitespace-nowrap px-1 text-left text-[11px] font-semibold text-white ${capL ? 'rounded-l' : ''} ${capR ? 'rounded-r' : ''}`}
+                              style={{ left: `${(s / 7) * 100}%`, width: `${((e - s) / 7) * 100}%`, background: color(b.guest_id) }}>{b.guest_name}</button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          </Card>
-        );
-      })}
+            );
+          })}
+        </Card>
+      )}
       {sel && (
         <Modal title={sel[0].guest_name} onClose={() => setSel(null)} size="sm">
           <div className="space-y-2 text-sm">
