@@ -9,16 +9,18 @@ interface Props<T> {
   rowKey: (r: T) => string | number;
   actions?: (r: T) => ReactNode;
   empty?: ReactNode;
+  table?: boolean; // true = tabel di semua layar (geser horizontal di mobile), bukan kartu
+  footer?: ReactNode;
 }
 const cell = <T,>(c: Column<T>, r: T) => (c.fmt ? c.fmt(r) : ((r as Record<string, unknown>)[c.key] as ReactNode) ?? '-');
 
 // Satu komponen, dua tampilan: tabel di desktop, daftar kartu di mobile (kolom pertama = judul kartu).
-export function DataTable<T>({ rows, columns, rowKey, actions, empty = 'Belum ada data.' }: Props<T>) {
+export function DataTable<T>({ rows, columns, rowKey, actions, empty = 'Belum ada data.', table = false, footer }: Props<T>) {
   const note = !rows ? <p className="text-mut">Lagi muat...</p> : !rows.length ? <div className="text-center text-mut">{empty}</div> : null;
   const [head, ...rest] = columns;
   return (
     <>
-      <Card className="hidden overflow-x-auto p-0 md:block">
+      <Card className={cn('overflow-x-auto p-0', !table && 'hidden md:block')}>
         <table className="w-full text-sm">
           <thead className="text-left text-xs font-semibold uppercase tracking-wide text-mut"><tr>{columns.map((c) => <th key={c.key} className="whitespace-nowrap p-3">{c.label}</th>)}{actions && <th />}</tr></thead>
           <tbody>
@@ -30,10 +32,11 @@ export function DataTable<T>({ rows, columns, rowKey, actions, empty = 'Belum ad
             ))}
             {note && <tr><td className="p-8" colSpan={columns.length + 1}>{note}</td></tr>}
           </tbody>
+          {footer}
         </table>
       </Card>
 
-      <div className="space-y-2.5 md:hidden">
+      <div className={cn('space-y-2.5 md:hidden', table && 'hidden')}>
         {rows?.map((r) => (
           <Card key={rowKey(r)} className="p-3.5">
             <div className="text-base font-semibold">{cell(head, r)}</div>

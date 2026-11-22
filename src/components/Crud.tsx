@@ -16,8 +16,9 @@ interface CrudProps {
   onChange?: (next: Form, patch: Partial<Form>) => Promise<Partial<Form> | void> | Partial<Form> | void;
   extra?: (form: Form, set: (p: Partial<Form>) => void) => ReactNode; actions?: (r: Row, reload: () => void) => ReactNode; onSaved?: () => void;
   empty?: string; desc?: string; emptyAction?: ReactNode;
+  table?: boolean; toolbar?: (rows: Row[]) => ReactNode; rowFilter?: (r: Row) => boolean; footer?: (rows: Row[]) => ReactNode;
 }
-export default function Crud({ resource, title, columns, fields, query = '', defaults = {}, canAdd = true, onChange, extra, actions, onSaved, empty = 'Belum ada data.', desc, emptyAction }: CrudProps) {
+export default function Crud({ resource, title, columns, fields, query = '', defaults = {}, canAdd = true, onChange, extra, actions, onSaved, empty = 'Belum ada data.', desc, emptyAction, table, toolbar, rowFilter, footer }: CrudProps) {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [form, setForm] = useState<Form | null>(null);
   const [busy, setBusy] = useState(false);
@@ -42,6 +43,7 @@ export default function Crud({ resource, title, columns, fields, query = '', def
     try { await api(`/${resource}/${r.id}`, { method: 'DELETE' }); toast('Terhapus'); load(); onSaved?.(); } catch (err) { toast(errMsg(err), true); }
   };
 
+  const shown = rows && (rowFilter ? rows.filter(rowFilter) : rows);
   const input = (f: Field) => {
     const fm = form!;
     const v = fm[f.key] ?? '';
@@ -68,7 +70,8 @@ export default function Crud({ resource, title, columns, fields, query = '', def
           </form>
         </Modal>
       )}
-      <DataTable rows={rows} columns={columns} rowKey={(r) => r.id} empty={<><p>{empty}</p>{emptyAction && <div className="mt-3">{emptyAction}</div>}</>}
+      {rows && toolbar?.(rows)}
+      <DataTable table={table} footer={shown && footer?.(shown)} rows={shown} columns={columns} rowKey={(r) => r.id} empty={<><p>{empty}</p>{emptyAction && <div className="mt-3">{emptyAction}</div>}</>}
         actions={(r) => (
           <>
             {actions?.(r, load)}

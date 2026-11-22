@@ -6,7 +6,7 @@ import type { Row } from '../lib/types';
 import Crud from '../components/Crud';
 import PromoCalc from '../components/PromoCalc';
 import { SEM } from '../lib/theme';
-import { Badge, Button } from '../components/ui';
+import { Badge, Button, FilterButton, FilterChip, FilterGroup, FilterSheet, useFilterSheet, type ActiveFilter } from '../components/ui';
 
 const opts = (rows: Row[], l: (r: Row) => string) => rows.map((r) => ({ v: r.id, l: l(r) }));
 
@@ -58,14 +58,46 @@ export function Promos() {
 const KINDS: Record<string, string[]> = { income: ['Pemasukan', 'Pemasukan lain'], expense: ['Biaya', 'Biaya operasional'], capital: ['Modal', 'Modal awal / investasi'] };
 const DESC: Record<string, string> = { income: 'Pembayaran booking otomatis masuk sini. Pemasukan lain bisa dicatat manual.', expense: 'Listrik, air, gaji, dan biaya rutin lainnya.', capital: 'Modal awal dan investasi. Dipakai hitung balik modal.' };
 
+const MONS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+const monLabel = (m: string) => `${MONS[+m.slice(5) - 1]} ${m.slice(2, 4)}`;
+const dmy = (s?: string) => (s ? `${+s.slice(8)} ${MONS[+s.slice(5, 7) - 1]} ${s.slice(2, 4)}` : '-');
+
+// Tabel (juga di mobile, geser samping) + filter bulan / kategori / kamar lewat bottom sheet.
 function Ledger({ kind }: { kind: string }) {
   const [cats] = useList('categories');
   const [rooms] = useList('rooms');
   const catOpts = opts(cats.filter((c) => c.kind === kind), (c) => c.name);
+  const f = useFilterSheet<{ month: string; cat: number; room: number }>({ month: '', cat: 0, room: 0 });
+  const { month, cat, room } = f.applied;
+  const rowFilter = (r: Row) => (!month || r.date.startsWith(month)) && (!cat || r.category_id === cat) && (!room || r.room_id === room);
+  const active: ActiveFilter[] = [
+    ...(month ? [{ key: 'm', label: monLabel(month), onRemove: () => f.set({ ...f.applied, month: '' }) }] : []),
+    ...(cat ? [{ key: 'c', label: cats.find((c) => c.id === cat)?.name ?? 'Kategori', onRemove: () => f.set({ ...f.applied, cat: 0 }) }] : []),
+    ...(room ? [{ key: 'r', label: `Kamar ${rooms.find((r) => r.id === room)?.number ?? ''}`, onRemove: () => f.set({ ...f.applied, room: 0 }) }] : []),
+  ];
   return (
-    <Crud key={kind} resource="transactions" query={`?kind=${kind}`} title={KINDS[kind][0]} desc={DESC[kind]} defaults={{ date: today() }}
+    <Crud key={kind} resource="transactions" query={`?kind=${kind}`} title={KINDS[kind][0]} desc={DESC[kind]} defaults={{ date: today() }} table rowFilter={rowFilter}
       empty={kind === 'income' ? 'Pembayaran booking otomatis muncul di sini.' : 'Belum ada catatan.'}
-      columns={[{ key: 'date', label: 'Tanggal' }, { key: 'category', label: 'Kategori' }, { key: 'amount', label: 'Nominal', fmt: (r) => rp(r.amount) },
+      toolbar={(all) => {
+        const months = [...new Set(all.map((r) => String(r.date).slice(0, 7)))].sort().reverse();
+        return (
+          <>
+            <FilterButton onClick={f.show} filters={active} />
+            {f.open && (
+              <FilterSheet onClose={f.close} onReset={f.reset} onApply={f.apply}>
+                <FilterGroup label="Bulan"><FilterChip selected={!f.draft.month} onClick={() => f.setDraft({ ...f.draft, month: '' })}>Semua</FilterChip>
+                  {months.map((m) => <FilterChip key={m} selected={f.draft.month === m} onClick={() => f.setDraft({ ...f.draft, month: m })}>{monLabel(m)}</FilterChip>)}</FilterGroup>
+                <FilterGroup label="Kategori"><FilterChip selected={!f.draft.cat} onClick={() => f.setDraft({ ...f.draft, cat: 0 })}>Semua</FilterChip>
+                  {catOpts.map((c) => <FilterChip key={c.v} selected={f.draft.cat === c.v} onClick={() => f.setDraft({ ...f.draft, cat: Number(c.v) })}>{c.l}</FilterChip>)}</FilterGroup>
+                <FilterGroup label="Kamar"><FilterChip selected={!f.draft.room} onClick={() => f.setDraft({ ...f.draft, room: 0 })}>Semua</FilterChip>
+                  {rooms.filter((r) => !r.archived).map((r) => <FilterChip key={r.id} selected={f.draft.room === r.id} onClick={() => f.setDraft({ ...f.draft, room: r.id })}>{r.number}</FilterChip>)}</FilterGroup>
+              </FilterSheet>
+            )}
+          </>
+        );
+      }}
+      footer={(rs) => rs.length > 0 && <tfoot><tr className="border-t-2 border-line font-semibold"><td className="p-3">Total ({rs.length})</td><td /><td className="whitespace-nowrap p-3">{rp(rs.reduce((a, r) => a + r.amount, 0))}</td><td colSpan={3} /></tr></tfoot>}
+      columns={[{ key: 'date', label: 'Tanggal', fmt: (r) => dmy(r.date) }, { key: 'category', label: 'Kategori' }, { key: 'amount', label: 'Nominal', fmt: (r) => rp(r.amount) },
         { key: 'note', label: 'Catatan', fmt: (r) => r.guest_name ? `Booking ${r.guest_name}${r.note ? ' · ' + r.note : ''}` : r.note || '-' }, { key: 'room_number', label: 'Kamar' }]}
       fields={[{ key: 'date', label: 'Tanggal', type: 'date', req: 1 }, { key: 'category_id', label: 'Kategori', type: 'select', req: 1, options: catOpts },
         { key: 'amount', label: 'Nominal', type: 'number', req: 1 }, { key: 'room_id', label: 'Kamar (opsional)', type: 'select', options: opts(rooms, (r) => r.number) }, { key: 'method', label: 'Metode' }, { key: 'note', label: 'Catatan' }]} />

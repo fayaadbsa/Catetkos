@@ -3,6 +3,7 @@ import { Sun, Moon, LogOut } from 'lucide-react';
 import { api, cn, errMsg } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { useDarkMode } from '../lib/dark';
+import { KosSwitcher } from '../components/shell/KosSwitcher';
 import { Button, Card, Input, Label, PageHeader } from '../components/ui';
 
 // Halaman Akun: tema, ganti password, keluar. Ganti password sukses = semua sesi dicabut, login ulang.
@@ -22,6 +23,7 @@ export default function Account() {
     <div className="space-y-5">
       <PageHeader title="Akun" desc={`Masuk sebagai ${me?.username || ''}.`} />
       <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="lg:col-span-2"><h2 className="mb-3 text-base font-semibold">Kos aktif</h2><KosSwitcher /></Card>
         <Card>
           <h2 className="text-base font-semibold">Tampilan</h2>
           <p className="mb-3 text-sm text-mut">Pilih tema yang enak di mata.</p>
