@@ -6,3 +6,4 @@ node_modules
 seed/*.json
 test-results
 playwright-report
+research/*
