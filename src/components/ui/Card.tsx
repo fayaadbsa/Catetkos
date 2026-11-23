@@ -1,11 +1,13 @@
+'use client';
+
 import type { HTMLAttributes, ReactNode } from 'react';
-import { cn } from '../../lib/api';
+import { cn } from '@/lib/api';
 
 export const Card = ({ className, ...p }: HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
       'rounded-xl border border-line bg-surface p-4 shadow-card transition-colors',
-      className
+      className,
     )}
     {...p}
   />
@@ -37,12 +39,7 @@ export const Stat = ({ label, value, hint, icon, trend }: StatProps) => (
     {(hint || trend) && (
       <div className="mt-1 flex items-center gap-1.5 text-xs text-mut">
         {trend && (
-          <span
-            className={cn(
-              'font-semibold',
-              trend.positive ? 'text-ok' : 'text-danger'
-            )}
-          >
+          <span className={cn('font-semibold', trend.positive ? 'text-ok' : 'text-danger')}>
             {trend.positive ? '↑' : '↓'} {trend.text}
           </span>
         )}
@@ -66,9 +63,7 @@ export const PageHeader = ({
   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <div className="min-w-0">
       <div className="flex items-center gap-2">
-        <h1 className="text-xl md:text-2xl font-bold tracking-tight text-tx truncate">
-          {title}
-        </h1>
+        <h1 className="text-xl md:text-2xl font-bold tracking-tight text-tx truncate">{title}</h1>
         {badge}
       </div>
       {desc && <p className="mt-0.5 text-xs md:text-sm text-mut truncate">{desc}</p>}
@@ -84,12 +79,7 @@ export interface BadgeProps {
   className?: string;
 }
 
-export const Badge = ({
-  color,
-  variant,
-  children,
-  className,
-}: BadgeProps) => {
+export const Badge = ({ color, variant, children, className }: BadgeProps) => {
   // Variant mapping if color not directly supplied
   let bg = 'bg-soft';
   let text = 'text-mut';
@@ -123,7 +113,7 @@ export const Badge = ({
       <span
         className={cn(
           'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] md:text-xs font-semibold',
-          className
+          className,
         )}
         style={{
           background: color + '1a',
@@ -144,7 +134,7 @@ export const Badge = ({
         bg,
         text,
         border,
-        className
+        className,
       )}
     >
       <span className={cn('size-1.5 rounded-full shrink-0', dotBg)} />

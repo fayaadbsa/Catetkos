@@ -1,0 +1,35 @@
+import {
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  BedDouble,
+  Building2,
+  CalendarCheck,
+  CalendarDays,
+  Grid2x2,
+  Landmark,
+  Layers,
+  LayoutDashboard,
+  ListChecks,
+  Tag,
+  UserCircle,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
+import type { IconName } from './nav-items';
+
+export const ICONS: Record<IconName, LucideIcon> = {
+  dashboard: LayoutDashboard,
+  booking: CalendarCheck,
+  calendar: CalendarDays,
+  guests: Users,
+  promo: Tag,
+  income: ArrowDownToLine,
+  expense: ArrowUpFromLine,
+  capital: Landmark,
+  'room-types': Layers,
+  rooms: BedDouble,
+  categories: ListChecks,
+  kos: Building2,
+  account: UserCircle,
+  more: Grid2x2,
+};

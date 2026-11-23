@@ -1,8 +1,13 @@
 node_modules
-dist
+.next
 data
 .git
 .github
 .env*
 seed/*.json
 !seed/example
+test-results
+playwright-report
+research
+e2e
+tests

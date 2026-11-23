@@ -1,7 +1,9 @@
+'use client';
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Info } from 'lucide-react';
-import { api, rp } from '../lib/api';
-import { useList } from '../lib/useList';
+import { api, rp } from '@/lib/api';
+import { useList } from '@/lib/useList';
 import {
   Badge,
   Button,
@@ -13,8 +15,8 @@ import {
   Modal,
   PageHeader,
   useFilterSheet,
-} from '../components/ui';
-import type { Row } from '../lib/types';
+} from '@/components/ui';
+import type { Row } from '@/lib/types';
 
 const MON = [
   'Januari',
@@ -82,10 +84,7 @@ export default function Calendar() {
     }[] = [];
     for (const b of [...bs].sort((x, y) => x.check_in.localeCompare(y.check_in))) {
       const last = out.find(
-        (s) =>
-          s.room_id === b.room_id &&
-          s.guest_id === b.guest_id &&
-          s.check_out === b.check_in
+        (s) => s.room_id === b.room_id && s.guest_id === b.guest_id && s.check_out === b.check_in,
       );
       if (last) {
         last.check_out = b.check_out;
@@ -107,7 +106,11 @@ export default function Calendar() {
 
   const months = useMemo(() => {
     const first = bs.map((b) => b.check_in.slice(0, 7)).sort()[0] ?? cur;
-    const last = bs.map((b) => b.check_out.slice(0, 7)).sort().pop() ?? cur;
+    const last =
+      bs
+        .map((b) => b.check_out.slice(0, 7))
+        .sort()
+        .pop() ?? cur;
     const a = first < cur ? first : cur;
     const b = last > cur ? last : cur;
     const out: string[] = [];
@@ -131,7 +134,7 @@ export default function Calendar() {
     const lastM = months[months.length - 1];
     const endD = new Date(+lastM.slice(0, 4), +lastM.slice(5), 0);
     const out: string[][] = [];
-    for (const d = new Date(d0); d <= endD || out.length === 0; ) {
+    for (const d = new Date(d0); d <= endD || out.length === 0;) {
       const w: string[] = [];
       for (let i = 0; i < 7; i++) {
         w.push(ymd(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -150,8 +153,7 @@ export default function Calendar() {
   const active = rooms.filter((r) => !r.archived && (!type || r.room_type_id === type));
   const td = ymd(now.getFullYear(), now.getMonth(), now.getDate());
 
-  const go = (m: string) =>
-    refs.current[m]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const go = (m: string) => refs.current[m]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   useEffect(() => {
     if (rows) refs.current[cur]?.scrollIntoView({ block: 'start' });
@@ -163,13 +165,7 @@ export default function Calendar() {
       return r && r.top > 100;
     });
     const i = vis < 0 ? months.length - 1 : vis;
-    const t =
-      months[
-        Math.min(
-          months.length - 1,
-          Math.max(0, i + n - (n < 0 && vis >= 0 ? 0 : 0))
-        )
-      ];
+    const t = months[Math.min(months.length - 1, Math.max(0, i + n - (n < 0 && vis >= 0 ? 0 : 0)))];
     if (t) go(t);
   };
 
@@ -230,10 +226,7 @@ export default function Calendar() {
       {fs.open && (
         <FilterSheet onClose={fs.close} onReset={fs.reset} onApply={fs.apply}>
           <FilterGroup label="Tipe Kamar">
-            <FilterChip
-              selected={!fs.draft.type}
-              onClick={() => fs.setDraft({ type: 0 })}
-            >
+            <FilterChip selected={!fs.draft.type} onClick={() => fs.setDraft({ type: 0 })}>
               Semua Tipe
             </FilterChip>
             {tipe
@@ -272,9 +265,7 @@ export default function Calendar() {
 
           <div className="divide-y divide-line/60">
             {weeks.map((w) => {
-              const ym1 = w.find(
-                (d) => d.endsWith('-01') && months.includes(d.slice(0, 7))
-              );
+              const ym1 = w.find((d) => d.endsWith('-01') && months.includes(d.slice(0, 7)));
               const wFirst = w[0],
                 wEnd = ymdPlus(w[6], 1);
 
@@ -314,13 +305,11 @@ export default function Calendar() {
                               isToday
                                 ? 'bg-primary font-bold text-primary-fg shadow-card'
                                 : isFirst
-                                ? 'font-bold text-brand'
-                                : 'text-mut'
+                                  ? 'font-bold text-brand'
+                                  : 'text-mut'
                             }`}
                           >
-                            {isFirst
-                              ? `1 ${MON[+d.slice(5, 7) - 1].slice(0, 3)}`
-                              : +d.slice(8)}
+                            {isFirst ? `1 ${MON[+d.slice(5, 7) - 1].slice(0, 3)}` : +d.slice(8)}
                           </span>
                         </div>
                       );
@@ -339,9 +328,7 @@ export default function Calendar() {
                           {stays
                             .filter(
                               (b) =>
-                                b.room_id === r.id &&
-                                b.check_in < wEnd &&
-                                b.check_out > wFirst
+                                b.room_id === r.id && b.check_in < wEnd && b.check_out > wFirst,
                             )
                             .map((b) => {
                               const s = b.check_in <= wFirst ? 0 : w.indexOf(b.check_in);
@@ -354,9 +341,7 @@ export default function Calendar() {
                                   key={b.id}
                                   type="button"
                                   onClick={() => setSel(b.parts)}
-                                  title={`${b.guest_name}: ${dm(b.check_in)} → ${dm(
-                                    b.check_out
-                                  )}`}
+                                  title={`${b.guest_name}: ${dm(b.check_in)} → ${dm(b.check_out)}`}
                                   className={`absolute inset-y-1 overflow-hidden whitespace-nowrap px-2 text-left text-[11px] font-bold text-white shadow-2xs transition-transform active:scale-95 ${
                                     capL ? 'rounded-l-md' : ''
                                   } ${capR ? 'rounded-r-md' : ''}`}
@@ -385,11 +370,7 @@ export default function Calendar() {
 
       {/* Booking Stay Detail Modal */}
       {sel && (
-        <Modal
-          title={sel[0].guest_name}
-          onClose={() => setSel(null)}
-          size="sm"
-        >
+        <Modal title={sel[0].guest_name} onClose={() => setSel(null)} size="sm">
           <div className="space-y-4 text-xs md:text-sm">
             <div className="rounded-xl border border-line bg-soft/50 p-3.5 space-y-1">
               <div className="flex items-center justify-between">
@@ -441,8 +422,8 @@ export default function Calendar() {
                   {sel[0].deposit_returned_date
                     ? `dikembalikan ${dm(sel[0].deposit_returned_date)}`
                     : sel[0].deposit_paid_date
-                    ? 'dipegang'
-                    : 'belum diterima'}
+                      ? 'dipegang'
+                      : 'belum diterima'}
                   )
                 </span>
               </div>
@@ -450,7 +431,7 @@ export default function Calendar() {
 
             {sel[0].note && (
               <p className="rounded-lg bg-soft/80 p-2.5 text-xs text-mut italic">
-                "{sel[0].note}"
+                &quot;{sel[0].note}&quot;
               </p>
             )}
           </div>

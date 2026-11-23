@@ -1,17 +1,33 @@
-import { Link, useLocation } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ChevronRight, Plus } from 'lucide-react';
 import { Logo } from './Logo';
-import { useAuth } from '../../lib/auth';
-import { useKos } from '../../lib/kos';
-import { NAV, ALL_ITEMS } from './nav-items';
-import { LinkButton } from '../ui';
+import { useAuth } from '@/lib/me';
+import { useKos } from '@/lib/kos';
+import { NAV } from './nav-items';
+import { LinkButton } from '@/components/ui';
 
-const MON = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+const MON = [
+  'Januari',
+  'Februari',
+  'Maret',
+  'April',
+  'Mei',
+  'Juni',
+  'Juli',
+  'Agustus',
+  'September',
+  'Oktober',
+  'November',
+  'Desember',
+];
 
 export function AppHeader({ title, sub }: { title: string; sub?: string }) {
   const { me } = useAuth();
   const { active } = useKos();
-  const { pathname } = useLocation();
+  const pathname = usePathname();
 
   // Find category/group for breadcrumb
   const group = NAV.find((g) => g.items.some((it) => it.path === pathname))?.group;
@@ -25,14 +41,12 @@ export function AppHeader({ title, sub }: { title: string; sub?: string }) {
         <div className="flex min-w-0 items-center gap-2.5">
           <Logo size={28} word={false} />
           <div className="min-w-0 leading-tight">
-            <h1 className="truncate text-base font-bold tracking-tight text-tx">
-              {title}
-            </h1>
+            <h1 className="truncate text-base font-bold tracking-tight text-tx">{title}</h1>
             {sub && <p className="truncate text-[11px] font-medium text-mut">{sub}</p>}
           </div>
         </div>
         <Link
-          to="/account"
+          href="/account"
           aria-label="Profil"
           className="grid size-9 place-items-center rounded-full bg-primary text-xs font-bold uppercase text-primary-fg shadow-card active:scale-95 transition-transform"
         >
@@ -70,7 +84,7 @@ export function AppHeader({ title, sub }: { title: string; sub?: string }) {
 
           {/* Quick Action: Catat Transaksi */}
           <LinkButton
-            to="/income"
+            href="/income"
             variant="primary"
             size="sm"
             icon={<Plus size={14} />}
@@ -81,7 +95,7 @@ export function AppHeader({ title, sub }: { title: string; sub?: string }) {
 
           {/* Profile link */}
           <Link
-            to="/account"
+            href="/account"
             aria-label="Profil"
             className="grid size-8 place-items-center rounded-lg bg-soft hover:bg-line/60 transition-colors text-xs font-bold text-tx"
             title={me?.username}

@@ -1,10 +1,12 @@
+'use client';
+
 import { useState } from 'react';
 import { Sun, Moon, LogOut, Shield, Palette, KeyRound } from 'lucide-react';
-import { api, cn, errMsg } from '../lib/api';
-import { useAuth } from '../lib/auth';
-import { useDarkMode } from '../lib/dark';
-import { KosSwitcher } from '../components/shell/KosSwitcher';
-import { Button, Card, Input, Label, PageHeader } from '../components/ui';
+import { api, cn, errMsg } from '@/lib/api';
+import { useAuth } from '@/lib/me';
+import { useDarkMode } from '@/lib/dark';
+import { KosSwitcher } from '@/components/shell/KosSwitcher';
+import { Button, Card, Input, Label, PageHeader } from '@/components/ui';
 
 // Halaman Akun: tema, ganti password, keluar. Ganti password sukses = semua sesi dicabut, login ulang.
 export default function Account() {
@@ -18,7 +20,7 @@ export default function Account() {
     e.preventDefault();
     setErr('');
     try {
-      await api('/password', { body: f });
+      await api('/auth/password', { body: f });
       setOk(true);
       setTimeout(onLogout, 800);
     } catch (x) {
@@ -33,10 +35,7 @@ export default function Account() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Pengaturan Akun"
-        desc={`Masuk sebagai ${me?.username || 'Pengguna'}.`}
-      />
+      <PageHeader title="Pengaturan Akun" desc={`Masuk sebagai ${me?.username || 'Pengguna'}.`} />
 
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Kos Aktif */}
@@ -78,7 +77,7 @@ export default function Account() {
                   'inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs md:text-sm font-bold transition-all active:scale-95',
                   dark === v
                     ? 'bg-surface text-tx shadow-card font-extrabold'
-                    : 'text-mut hover:text-tx'
+                    : 'text-mut hover:text-tx',
                 )}
               >
                 <Icon size={16} />

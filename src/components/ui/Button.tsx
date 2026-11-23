@@ -1,6 +1,9 @@
+'use client';
+
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { Link, type LinkProps } from 'react-router-dom';
-import { cn } from '../../lib/api';
+import Link from 'next/link';
+import type { ComponentProps } from 'react';
+import { cn } from '@/lib/api';
 
 export type ButtonVariant = 'primary' | 'ghost' | 'outline' | 'danger' | 'brand';
 export type ButtonSize = 'default' | 'sm' | 'lg' | 'icon';
@@ -14,7 +17,7 @@ interface ButtonExtraProps {
 export const buttonClass = (
   variant: ButtonVariant = 'primary',
   size: ButtonSize = 'default',
-  className?: string
+  className?: string,
 ) =>
   cn(
     'inline-flex items-center justify-center gap-1.5 font-medium transition-all select-none disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97]',
@@ -25,12 +28,14 @@ export const buttonClass = (
     size === 'lg' && 'min-h-12 px-4 py-2.5 text-base md:min-h-10 md:px-3.5 md:py-2 md:text-sm',
     size === 'icon' && 'size-11 p-0 md:size-9',
     // Variants
-    variant === 'primary' && 'bg-primary text-primary-fg shadow-xs hover:bg-primary/90 active:bg-primary',
+    variant === 'primary' &&
+      'bg-primary text-primary-fg shadow-xs hover:bg-primary/90 active:bg-primary',
     variant === 'brand' && 'bg-brand text-white shadow-xs hover:bg-brand/90 active:bg-brand',
-    variant === 'outline' && 'border border-line bg-surface text-tx shadow-card hover:bg-soft hover:text-tx active:bg-soft',
+    variant === 'outline' &&
+      'border border-line bg-surface text-tx shadow-card hover:bg-soft hover:text-tx active:bg-soft',
     variant === 'ghost' && 'text-tx hover:bg-soft hover:text-tx active:bg-soft',
     variant === 'danger' && 'bg-danger text-white shadow-xs hover:opacity-90 active:opacity-100',
-    className
+    className,
   );
 
 export const Button = ({
@@ -55,7 +60,7 @@ export const LinkButton = ({
   className,
   children,
   ...p
-}: LinkProps & ButtonExtraProps) => (
+}: ComponentProps<typeof Link> & ButtonExtraProps) => (
   <Link className={buttonClass(variant, size, className)} {...p}>
     {icon}
     {children}

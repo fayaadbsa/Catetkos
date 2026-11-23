@@ -1,3 +1,5 @@
+'use client';
+
 // Booking per bulan: 1 baris = 1 bulan. Form bisa bikin beberapa bulan sekaligus (tercatat per bulan).
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -13,11 +15,11 @@ import {
   CalendarDays,
   ArrowRight,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { api, rp, toast, today, errMsg } from '../lib/api';
-import { useList } from '../lib/useList';
-import type { Row, Form } from '../lib/types';
-import { SEM } from '../lib/theme';
+import { useRouter } from 'next/navigation';
+import { api, rp, toast, today, errMsg } from '@/lib/api';
+import { useList } from '@/lib/useList';
+import type { Row, Form } from '@/lib/types';
+import { SEM } from '@/lib/theme';
 import {
   Badge,
   Button,
@@ -31,7 +33,7 @@ import {
   Tabs,
   DataTable,
   type Column,
-} from '../components/ui';
+} from '@/components/ui';
 
 const STATUS: Record<string, [string, string]> = {
   booked: ['Akan masuk', SEM.warn],
@@ -56,10 +58,7 @@ const CheckDate = ({
 }) => (
   <div className="flex flex-wrap items-center gap-3 rounded-lg border border-line bg-surface p-3">
     <label className="flex items-center gap-2 text-xs md:text-sm font-semibold text-tx cursor-pointer">
-      <Checkbox
-        checked={!!value}
-        onChange={(e) => onChange(e.target.checked ? today() : '')}
-      />
+      <Checkbox checked={!!value} onChange={(e) => onChange(e.target.checked ? today() : '')} />
       {label}
     </label>
     {!!value && (
@@ -104,6 +103,7 @@ function NewBooking({
   const set = (p: Row | Record<string, unknown>) => setF((x) => ({ ...x, ...p }));
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setQ(null);
     if (!f.room_id || !f.check_in) return;
     api(`/quote?room_id=${f.room_id}&check_in=${f.check_in}&months=${f.months}`)
@@ -143,11 +143,7 @@ function NewBooking({
       <form onSubmit={save} className="grid gap-3.5 md:grid-cols-2">
         <Label>
           Kamar *
-          <Select
-            required
-            value={f.room_id}
-            onChange={(e) => set({ room_id: e.target.value })}
-          >
+          <Select required value={f.room_id} onChange={(e) => set({ room_id: e.target.value })}>
             <option value="">- Pilih kamar -</option>
             {rooms.map((r) => (
               <option key={r.id} value={r.id}>
@@ -167,10 +163,7 @@ function NewBooking({
         </Label>
         <Label>
           Tamu
-          <Select
-            value={f.guest_id}
-            onChange={(e) => set({ guest_id: e.target.value })}
-          >
+          <Select value={f.guest_id} onChange={(e) => set({ guest_id: e.target.value })}>
             <option value="">+ Tamu baru</option>
             {guests.map((g) => (
               <option key={g.id} value={g.id}>
@@ -194,10 +187,7 @@ function NewBooking({
         )}
         <Label>
           Durasi sewa
-          <Select
-            value={f.months}
-            onChange={(e) => set({ months: +e.target.value })}
-          >
+          <Select value={f.months} onChange={(e) => set({ months: +e.target.value })}>
             {DURATIONS.map((n) => (
               <option key={n} value={n}>
                 {n} bulan
@@ -269,11 +259,7 @@ function NewBooking({
         </div>
         <div className="col-span-full mt-2 flex items-center gap-2 border-t border-line/60 pt-3">
           <Button disabled={busy} className="flex-1 md:flex-none">
-            {busy
-              ? 'Menyimpan...'
-              : f.months > 1
-              ? `Simpan ${f.months} bulan`
-              : 'Simpan Booking'}
+            {busy ? 'Menyimpan...' : f.months > 1 ? `Simpan ${f.months} bulan` : 'Simpan Booking'}
           </Button>
           <Button type="button" variant="ghost" onClick={onClose}>
             Batal
@@ -324,11 +310,7 @@ function EditBooking({ b, rooms, onClose, onDone }: DlgProps & { b: Row }) {
       <form onSubmit={save} className="grid gap-3.5 md:grid-cols-2">
         <Label>
           Kamar
-          <Select
-            required
-            value={f.room_id}
-            onChange={(e) => set({ room_id: e.target.value })}
-          >
+          <Select required value={f.room_id} onChange={(e) => set({ room_id: e.target.value })}>
             {rooms.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.number} · {r.type_name}
@@ -375,16 +357,10 @@ function EditBooking({ b, rooms, onClose, onDone }: DlgProps & { b: Row }) {
         </Label>
         <Label>
           Catatan
-          <Input
-            value={f.note}
-            onChange={(e) => set({ note: e.target.value })}
-          />
+          <Input value={f.note} onChange={(e) => set({ note: e.target.value })} />
         </Label>
         <label className="col-span-full flex items-center gap-2 text-xs md:text-sm font-semibold text-tx cursor-pointer">
-          <Checkbox
-            checked={f.cancelled}
-            onChange={(e) => set({ cancelled: e.target.checked })}
-          />
+          <Checkbox checked={f.cancelled} onChange={(e) => set({ cancelled: e.target.checked })} />
           Booking dibatalkan
         </label>
         <div className="col-span-full flex items-center gap-2 border-t border-line/60 pt-3">
@@ -416,12 +392,7 @@ function PayDialog({
       <p className="mb-4 text-xs md:text-sm text-mut leading-relaxed">{info}</p>
       <Label>
         Tanggal dibayar
-        <Input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-        />
+        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
       </Label>
       <div className="mt-5 flex gap-2 border-t border-line/60 pt-3">
         <Button onClick={() => onConfirm(date)} className="flex-1" icon={<Check size={16} />}>
@@ -452,9 +423,7 @@ function groupStays(rows: Row[]): Stay[] {
     .sort((x, y) => x.check_in.localeCompare(y.check_in))) {
     const last = out.find(
       (t) =>
-        t.parts[0].room_id === b.room_id &&
-        t.guest_id === b.guest_id &&
-        t.check_out === b.check_in
+        t.parts[0].room_id === b.room_id && t.guest_id === b.guest_id && t.check_out === b.check_in,
     );
     if (last) {
       last.check_out = b.check_out;
@@ -485,7 +454,7 @@ function groupStays(rows: Row[]): Stay[] {
   return [...out, ...cancelled].sort(
     (a, b) =>
       a.room_number.localeCompare(b.room_number, undefined, { numeric: true }) ||
-      a.check_in.localeCompare(b.check_in)
+      a.check_in.localeCompare(b.check_in),
   );
 }
 
@@ -495,7 +464,7 @@ export default function Bookings() {
   const [guests, reloadGuests] = useList('guests');
   type Dlg = { k: 'new'; init?: Form } | { k: 'edit' | 'rent' | 'dep' | 'ret'; b: Row } | null;
   const [dlg, setDlg] = useState<Dlg>(null);
-  const nav = useNavigate();
+  const router = useRouter();
   const [filter, setFilter] = useState<'all' | 'active' | 'unpaid' | 'cancelled'>('all');
   const [query, setQuery] = useState('');
   const [stayId, setStayId] = useState<number | null>(null);
@@ -541,26 +510,25 @@ export default function Bookings() {
       (rows || [])
         .filter((b) => b.status !== 'cancelled')
         .reduce((acc, b) => acc + (b.price_total || 0), 0),
-    [rows]
+    [rows],
   );
   const totalUnpaid = useMemo(
     () =>
       (rows || [])
         .filter((b) => b.status !== 'cancelled')
         .reduce((acc, b) => acc + Math.max(0, b.price_total - b.paid), 0),
-    [rows]
+    [rows],
   );
   const activeCount = useMemo(
     () => (rows || []).filter((b) => b.status === 'checked_in').length,
-    [rows]
+    [rows],
   );
 
   const shown = useMemo(() => {
     return stays.filter((t) => {
       // Tab filter
       if (filter === 'unpaid') {
-        if (!t.parts.some((b) => b.status !== 'cancelled' && b.paid < b.price_total))
-          return false;
+        if (!t.parts.some((b) => b.status !== 'cancelled' && b.paid < b.price_total)) return false;
       } else if (filter === 'active') {
         if (!t.parts.some((b) => b.status === 'checked_in')) return false;
       } else if (filter === 'cancelled') {
@@ -569,10 +537,7 @@ export default function Bookings() {
       // Search query
       if (query.trim()) {
         const q = query.toLowerCase();
-        return (
-          t.guest_name.toLowerCase().includes(q) ||
-          t.room_number.toLowerCase().includes(q)
-        );
+        return t.guest_name.toLowerCase().includes(q) || t.room_number.toLowerCase().includes(q);
       }
       return true;
     });
@@ -601,7 +566,7 @@ export default function Bookings() {
             confirm('Batalkan pembayaran bulan ini?') &&
             run(
               () => api(`/bookings/${b.id}/pay`, { body: { paid: false } }),
-              'Pembayaran dibatalkan'
+              'Pembayaran dibatalkan',
             )
           }
         >
@@ -611,11 +576,7 @@ export default function Bookings() {
     return (
       <div className="flex flex-col items-start gap-1">
         {b.paid > 0 && <Badge color={SEM.warn}>Kurang {rp(b.price_total - b.paid)}</Badge>}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setDlg({ k: 'rent', b })}
-        >
+        <Button variant="outline" size="sm" onClick={() => setDlg({ k: 'rent', b })}>
           Tandai lunas
         </Button>
       </div>
@@ -624,29 +585,20 @@ export default function Bookings() {
 
   const dep = (b: Row) => {
     if (!b.deposit) return <span className="text-mut">-</span>;
-    if (b.deposit_returned_date)
-      return <Badge>Dikembalikan · {dm(b.deposit_returned_date)}</Badge>;
+    if (b.deposit_returned_date) return <Badge>Dikembalikan · {dm(b.deposit_returned_date)}</Badge>;
     if (b.deposit_paid_date)
       return (
         <div className="flex flex-col items-start gap-1">
           <Badge color={SEM.ok}>{rp(b.deposit)} dipegang</Badge>
           {b.status === 'checked_out' && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDlg({ k: 'ret', b })}
-            >
+            <Button variant="outline" size="sm" onClick={() => setDlg({ k: 'ret', b })}>
               Kembalikan
             </Button>
           )}
         </div>
       );
     return (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setDlg({ k: 'dep', b })}
-      >
+      <Button variant="outline" size="sm" onClick={() => setDlg({ k: 'dep', b })}>
         Terima {rp(b.deposit)}
       </Button>
     );
@@ -657,10 +609,10 @@ export default function Bookings() {
     return bs.every((b) => b.status === 'cancelled')
       ? 'cancelled'
       : bs.some((b) => b.status === 'checked_in')
-      ? 'checked_in'
-      : bs.every((b) => b.status === 'checked_out')
-      ? 'checked_out'
-      : 'booked';
+        ? 'checked_in'
+        : bs.every((b) => b.status === 'checked_out')
+          ? 'checked_out'
+          : 'booked';
   };
 
   const paidInfo = (t: Stay) => {
@@ -742,11 +694,7 @@ export default function Bookings() {
         desc="Kelola sewa kamar bulanan, pembayaran & status tamu."
       >
         {activeRooms.length > 0 && (
-          <Button
-            onClick={() => setDlg({ k: 'new' })}
-            variant="primary"
-            icon={<Plus size={16} />}
-          >
+          <Button onClick={() => setDlg({ k: 'new' })} variant="primary" icon={<Plus size={16} />}>
             Booking Baru
           </Button>
         )}
@@ -827,12 +775,12 @@ export default function Bookings() {
               {filter !== 'all' || query
                 ? 'Tidak ada booking yang cocok dengan filter.'
                 : activeRooms.length
-                ? 'Belum ada booking tercatat.'
-                : 'Belum ada kamar aktif. Bikin kamar dulu.'}
+                  ? 'Belum ada booking tercatat.'
+                  : 'Belum ada kamar aktif. Bikin kamar dulu.'}
             </p>
             {!activeRooms.length && (
               <div className="mt-3">
-                <Button onClick={() => nav('/rooms')}>Bikin Kamar</Button>
+                <Button onClick={() => router.push('/rooms')}>Bikin Kamar</Button>
               </div>
             )}
           </>
@@ -851,11 +799,7 @@ export default function Bookings() {
                 +1 bln
               </Button>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setStayId(t.id)}
-            >
+            <Button variant="outline" size="sm" onClick={() => setStayId(t.id)}>
               Rincian
             </Button>
           </>
@@ -880,10 +824,7 @@ export default function Bookings() {
 
           <ul className="space-y-3">
             {stay.parts.map((b) => (
-              <li
-                key={b.id}
-                className="rounded-xl border border-line bg-surface p-4 shadow-2xs"
-              >
+              <li key={b.id} className="rounded-xl border border-line bg-surface p-4 shadow-2xs">
                 <div className="flex items-center justify-between gap-2 border-b border-line/60 pb-2">
                   <span className="font-mono font-bold text-tx">
                     {dm(b.check_in)} → {dm(b.check_out)}
@@ -965,13 +906,13 @@ export default function Bookings() {
         <PayDialog
           title={`Sewa Lunas: ${dlg.b.guest_name}`}
           info={`Kamar ${dlg.b.room_number}, ${dm(dlg.b.check_in)} → ${dm(
-            dlg.b.check_out
+            dlg.b.check_out,
           )}. Sisa tagihan ${rp(dlg.b.price_total - dlg.b.paid)}.`}
           onClose={() => setDlg(null)}
           onConfirm={(date) =>
             run(
               () => api(`/bookings/${dlg.b.id}/pay`, { body: { date } }),
-              'Pembayaran sewa dicatat'
+              'Pembayaran sewa dicatat',
             )
           }
         />
@@ -980,12 +921,10 @@ export default function Bookings() {
         <PayDialog
           title={`Deposit Diterima: ${dlg.b.guest_name}`}
           info={`Penerimaan deposit ${rp(
-            dlg.b.deposit
+            dlg.b.deposit,
           )}. Ini merupakan titipan jaminan, tidak dihitung omzet.`}
           onClose={() => setDlg(null)}
-          onConfirm={(date) =>
-            depPatch(dlg.b, { deposit_paid_date: date })
-          }
+          onConfirm={(date) => depPatch(dlg.b, { deposit_paid_date: date })}
         />
       )}
       {dlg?.k === 'ret' && (
@@ -993,9 +932,7 @@ export default function Bookings() {
           title={`Kembalikan Deposit: ${dlg.b.guest_name}`}
           info={`Kembalikan dana jaminan deposit ${rp(dlg.b.deposit)} ke tamu.`}
           onClose={() => setDlg(null)}
-          onConfirm={(date) =>
-            depPatch(dlg.b, { deposit_returned_date: date })
-          }
+          onConfirm={(date) => depPatch(dlg.b, { deposit_returned_date: date })}
         />
       )}
     </div>

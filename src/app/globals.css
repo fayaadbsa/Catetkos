@@ -3,8 +3,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-sans: var(--font-jakarta), 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-face), 'JetBrains Mono', ui-monospace, monospace;
 
   --color-bg: rgb(var(--bg));
   --color-surface: rgb(var(--surface));
@@ -20,8 +20,7 @@
   --color-warn: rgb(var(--warn));
   --color-ok: rgb(var(--ok));
 
-  --shadow-card:
-    0 1px 2px 0 rgb(var(--shadow) / 0.05), 0 1px 3px 0 rgb(var(--shadow) / 0.03);
+  --shadow-card: 0 1px 2px 0 rgb(var(--shadow) / 0.05), 0 1px 3px 0 rgb(var(--shadow) / 0.03);
   --shadow-card-hover: 0 4px 12px -2px rgb(var(--shadow) / 0.08);
   --shadow-floating: 0 12px 32px -4px rgba(0, 0, 0, 0.15);
 }
@@ -79,12 +78,20 @@
   color-scheme: dark;
 }
 /* Monokrom ala shadcn zinc + sentuhan modern iOS utility. Satu-satunya warna brand: --brand (#c2563a / terakota). */
-body { @apply bg-bg font-sans text-tx antialiased selection:bg-brand/20; }
+body {
+  @apply bg-bg font-sans text-tx antialiased selection:bg-brand/20;
+}
 
-:focus-visible { outline: 2px solid rgb(var(--mut)); outline-offset: 2px; }
+:focus-visible {
+  outline: 2px solid rgb(var(--mut));
+  outline-offset: 2px;
+}
 
 /* scrollbar tipis, ikut tema */
-* { scrollbar-width: thin; scrollbar-color: rgb(var(--line)) transparent; }
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--line)) transparent;
+}
 
 /* Utilitas tabular angka */
 .tabular-nums {

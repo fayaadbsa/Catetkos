@@ -1,5 +1,7 @@
+'use client';
+
 import type { InputHTMLAttributes, LabelHTMLAttributes, SelectHTMLAttributes } from 'react';
-import { cn } from '../../lib/api';
+import { cn } from '@/lib/api';
 
 // Target sentuh 44px di mobile (cegah zoom iOS), 36px di desktop
 const field =
@@ -13,25 +15,18 @@ export const Select = ({ className, ...p }: SelectHTMLAttributes<HTMLSelectEleme
   <select className={cn(field, 'cursor-pointer', className)} {...p} />
 );
 
-export const Label = ({
-  children,
-  className,
-  ...p
-}: LabelHTMLAttributes<HTMLLabelElement>) => (
+export const Label = ({ children, className, ...p }: LabelHTMLAttributes<HTMLLabelElement>) => (
   <label className={cn('block text-xs md:text-sm font-semibold text-tx', className)} {...p}>
     <span className="mb-1.5 block">{children}</span>
   </label>
 );
 
-export const Checkbox = ({
-  className,
-  ...p
-}: InputHTMLAttributes<HTMLInputElement>) => (
+export const Checkbox = ({ className, ...p }: InputHTMLAttributes<HTMLInputElement>) => (
   <input
     type="checkbox"
     className={cn(
       'size-4.5 rounded-sm border border-line text-primary accent-primary transition cursor-pointer',
-      className
+      className,
     )}
     {...p}
   />

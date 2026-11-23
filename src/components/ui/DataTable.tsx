@@ -1,5 +1,7 @@
+'use client';
+
 import type { ReactNode } from 'react';
-import { cn } from '../../lib/api';
+import { cn } from '@/lib/api';
 import { Card } from './Card';
 
 export interface Column<T> {
@@ -46,7 +48,7 @@ export function DataTable<T>({
       <div
         className={cn(
           'rounded-xl border border-line bg-surface shadow-card overflow-hidden',
-          !table && 'hidden md:block'
+          !table && 'hidden md:block',
         )}
       >
         <div className="overflow-x-auto">
@@ -60,7 +62,7 @@ export function DataTable<T>({
                       'whitespace-nowrap px-4 py-3',
                       c.align === 'right' && 'text-right',
                       c.align === 'center' && 'text-center',
-                      c.className
+                      c.className,
                     )}
                   >
                     {c.label}
@@ -71,10 +73,7 @@ export function DataTable<T>({
             </thead>
             <tbody className="divide-y divide-line/60">
               {rows?.map((r) => (
-                <tr
-                  key={rowKey(r)}
-                  className="transition-colors hover:bg-soft/40 group"
-                >
+                <tr key={rowKey(r)} className="transition-colors hover:bg-soft/40 group">
                   {columns.map((c) => (
                     <td
                       key={c.key}
@@ -82,7 +81,7 @@ export function DataTable<T>({
                         'whitespace-nowrap px-4 py-3 text-tx',
                         c.align === 'right' && 'text-right font-mono tabular-nums',
                         c.align === 'center' && 'text-center',
-                        c.className
+                        c.className,
                       )}
                     >
                       {cell(c, r)}
@@ -90,9 +89,7 @@ export function DataTable<T>({
                   ))}
                   {actions && (
                     <td className="whitespace-nowrap px-4 py-3 text-right">
-                      <div className="inline-flex items-center justify-end gap-1">
-                        {actions(r)}
-                      </div>
+                      <div className="inline-flex items-center justify-end gap-1">{actions(r)}</div>
                     </td>
                   )}
                 </tr>
@@ -120,14 +117,9 @@ export function DataTable<T>({
             </div>
             <dl className="mt-2.5 space-y-2 text-sm">
               {rest.map((c) => (
-                <div
-                  key={c.key}
-                  className="flex items-center justify-between gap-4"
-                >
+                <div key={c.key} className="flex items-center justify-between gap-4">
                   <dt className="text-xs font-medium text-mut">{c.label}</dt>
-                  <dd className="font-medium text-tx text-right">
-                    {cell(c, r)}
-                  </dd>
+                  <dd className="font-medium text-tx text-right">{cell(c, r)}</dd>
                 </div>
               ))}
             </dl>

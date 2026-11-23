@@ -1,8 +1,10 @@
+'use client';
+
 import { useState } from 'react';
 import { Calculator, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { rp } from '../lib/api';
-import { promoCheck } from '../lib/promo';
-import { Card, Input, Label, Badge } from './ui';
+import { rp } from '@/lib/api';
+import { promoCheck } from '@/lib/promo';
+import { Card, Input, Label } from './ui';
 
 export default function PromoCalc() {
   const [f, setF] = useState<Record<string, string | number>>({
@@ -13,9 +15,9 @@ export default function PromoCalc() {
   });
 
   const r = promoCheck(
-    Object.fromEntries(
-      Object.entries(f).map(([k, v]) => [k, +v])
-    ) as unknown as Parameters<typeof promoCheck>[0]
+    Object.fromEntries(Object.entries(f).map(([k, v]) => [k, +v])) as unknown as Parameters<
+      typeof promoCheck
+    >[0],
   );
 
   return (
@@ -71,9 +73,7 @@ export default function PromoCalc() {
 
       <div
         className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border p-4 ${
-          r.worth
-            ? 'border-ok/30 bg-ok/5'
-            : 'border-warn/30 bg-warn/5'
+          r.worth ? 'border-ok/30 bg-ok/5' : 'border-warn/30 bg-warn/5'
         }`}
       >
         <div className="flex items-center gap-2.5">
@@ -83,11 +83,7 @@ export default function PromoCalc() {
             <AlertTriangle size={20} className="text-warn shrink-0" />
           )}
           <div>
-            <span
-              className={`text-sm font-bold block ${
-                r.worth ? 'text-ok' : 'text-warn'
-              }`}
-            >
+            <span className={`text-sm font-bold block ${r.worth ? 'text-ok' : 'text-warn'}`}>
               {r.verdict}
             </span>
             <span className="text-xs text-mut">

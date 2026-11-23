@@ -1,32 +1,35 @@
-// Usage (di VPS): docker exec -it catetkos-prod node scripts/set-password.js <username>
+// Usage (di VPS): docker exec -it catetkos-prod bun scripts/set-password.ts <username>
 // Minta password lewat prompt tersembunyi (tidak lewat argumen / chat). Hash scrypt + salt.
-import readline from 'node:readline';
-import { db } from '../server/db.js';
-import { createUser, hashPw } from '../server/auth.js';
+import { prisma } from '../src/lib/db';
+import { createUser, setPassword } from '../src/lib/password';
+import { ask } from './cli';
 
 const username = process.argv[2]?.trim();
-if (!username) { console.error('Usage: node scripts/set-password.js <username>'); process.exit(1); }
-if (!process.stdin.isTTY) { console.error('Harus dijalankan interaktif (docker exec -it ...)'); process.exit(1); }
+if (!username) {
+  console.error('Usage: bun scripts/set-password.ts <username>');
+  process.exit(1);
+}
+if (!process.stdin.isTTY) {
+  console.error('Harus dijalankan interaktif (docker exec -it ...)');
+  process.exit(1);
+}
 
-const ask = (q) => new Promise((ok) => {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
-  let muted = false;
-  rl._writeToOutput = (s) => { if (!muted) rl.output.write(s); };
-  rl.question(q, (a) => { rl.close(); process.stdout.write('\n'); ok(a); });
-  muted = true;
-});
+const pw = await ask('Password baru: ', true);
+if (pw.length < 8) {
+  console.error('Minimal 8 karakter.');
+  process.exit(1);
+}
+if ((await ask('Ulangi password: ', true)) !== pw) {
+  console.error('Tidak sama.');
+  process.exit(1);
+}
 
-const pw = await ask('Password baru: ');
-if (pw.length < 8) { console.error('Minimal 8 karakter.'); process.exit(1); }
-if ((await ask('Ulangi password: ')) !== pw) { console.error('Tidak sama.'); process.exit(1); }
-
-const { salt, hash } = hashPw(pw);
-const u = db.prepare('SELECT id FROM users WHERE username=?').get(username);
+const u = await prisma.user.findUnique({ where: { username } });
 if (u) {
-  db.prepare('UPDATE users SET hash=?, salt=? WHERE id=?').run(hash, salt, u.id);
-  db.prepare('DELETE FROM sessions WHERE user_id=?').run(u.id);
+  await setPassword(u.id, pw);
   console.log(`Password ${username} diganti. Semua sesi dicabut.`);
 } else {
-  createUser(username, pw);
+  await createUser(username, pw);
   console.log(`User ${username} dibuat.`);
 }
+await prisma.$disconnect();

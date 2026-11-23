@@ -1,3 +1,5 @@
+'use client';
+
 export function Logo({
   size = 32,
   word = true,

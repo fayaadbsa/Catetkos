@@ -1,5 +1,7 @@
+'use client';
+
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import {
   TrendingUp,
   Home,
@@ -27,9 +29,9 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { useList } from '../lib/useList';
-import { api, rp } from '../lib/api';
-import { C, SEM, roomColor } from '../lib/theme';
+import { useList } from '@/lib/useList';
+import { api, rp } from '@/lib/api';
+import { C, SEM, roomColor } from '@/lib/theme';
 import {
   Card,
   Stat,
@@ -42,7 +44,7 @@ import {
   useFilterSheet,
   Tabs,
   type ActiveFilter,
-} from '../components/ui';
+} from '@/components/ui';
 
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 const mon = (m: string) => `${MON[+m.slice(5) - 1]} ${m.slice(2, 4)}`;
@@ -182,7 +184,10 @@ export default function Dashboard() {
       )}
 
       {/* 6 Metric Bento KPI Cards */}
-      <section aria-label="Metrik Utama" className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+      <section
+        aria-label="Metrik Utama"
+        className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6"
+      >
         <Stat
           label="Okupansi"
           value={`${d.occupancy}%`}
@@ -221,8 +226,8 @@ export default function Dashboard() {
             pb.monthsLeft
               ? `±${pb.monthsLeft} bln lagi`
               : pb.capitalTotal
-              ? `Modal ${rp(pb.capitalTotal)}`
-              : 'Isi di menu Modal'
+                ? `Modal ${rp(pb.capitalTotal)}`
+                : 'Isi di menu Modal'
           }
           icon={<Landmark size={16} />}
         />
@@ -236,9 +241,7 @@ export default function Dashboard() {
           <Card className="p-4 md:p-5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-line/60 pb-3">
               <div>
-                <h2 className="text-base font-bold text-tx tracking-tight">
-                  Arus Kas Bulanan
-                </h2>
+                <h2 className="text-base font-bold text-tx tracking-tight">Arus Kas Bulanan</h2>
                 <p className="text-xs text-mut">
                   Perbandingan uang masuk vs pengeluaran ({d.months} bulan terakhir)
                 </p>
@@ -286,9 +289,7 @@ export default function Dashboard() {
                     cursor={{ fill: 'rgba(var(--mut), 0.08)' }}
                   />
                   <Legend
-                    formatter={(v) => (
-                      <span className="text-xs font-semibold text-tx">{v}</span>
-                    )}
+                    formatter={(v) => <span className="text-xs font-semibold text-tx">{v}</span>}
                   />
                   <Bar
                     isAnimationActive={false}
@@ -325,12 +326,10 @@ export default function Dashboard() {
                 <h2 className="text-base font-bold text-tx tracking-tight">
                   Status Kamar Real-time
                 </h2>
-                <p className="text-xs text-mut">
-                  Kondisi fisik hunian kamar saat ini
-                </p>
+                <p className="text-xs text-mut">Kondisi fisik hunian kamar saat ini</p>
               </div>
               <Link
-                to="/calendar"
+                href="/calendar"
                 className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline"
               >
                 Buka Kalender <ArrowRight size={13} />
@@ -344,9 +343,7 @@ export default function Dashboard() {
                   <div
                     key={r.id}
                     className={`group relative flex flex-col justify-between rounded-xl border p-3 transition-all hover:shadow-card ${
-                      isOccupied
-                        ? 'border-line bg-surface'
-                        : 'border-line/70 bg-soft/60'
+                      isOccupied ? 'border-line bg-surface' : 'border-line/70 bg-soft/60'
                     }`}
                   >
                     <div>
@@ -361,9 +358,7 @@ export default function Dashboard() {
                           aria-hidden
                         />
                       </div>
-                      <div className="text-[11px] font-medium text-mut truncate">
-                        {r.type}
-                      </div>
+                      <div className="text-[11px] font-medium text-mut truncate">{r.type}</div>
                     </div>
 
                     <div className="mt-3 border-t border-line/50 pt-2 text-[11px]">
@@ -375,7 +370,10 @@ export default function Dashboard() {
                         <span className="text-mut">Belum pernah laku</span>
                       ) : (
                         <span className="text-mut">
-                          Kosong <strong className="font-bold text-tx">{Math.round(r.emptyDays)} hari</strong>
+                          Kosong{' '}
+                          <strong className="font-bold text-tx">
+                            {Math.round(r.emptyDays)} hari
+                          </strong>
                           {r.upcoming ? ` · masuk ${r.upcoming}` : ''}
                         </span>
                       )}
@@ -394,9 +392,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-2 border-b border-line/60 pb-3">
               <Sparkles size={16} className="text-brand" />
               <div>
-                <h2 className="text-base font-bold text-tx tracking-tight">
-                  Perlu Tindakan Cepat
-                </h2>
+                <h2 className="text-base font-bold text-tx tracking-tight">Perlu Tindakan Cepat</h2>
                 <p className="text-xs text-mut">Pemberitahuan operasional kos</p>
               </div>
             </div>
@@ -428,7 +424,7 @@ export default function Dashboard() {
             {d.receivable.total > 0 && (
               <div className="mt-4 border-t border-line/60 pt-3">
                 <Link
-                  to="/bookings"
+                  href="/bookings"
                   className="flex items-center justify-between text-xs font-semibold text-tx hover:text-brand transition-colors"
                 >
                   <span>Lihat {d.receivable.count} booking belum lunas</span>
@@ -479,10 +475,7 @@ export default function Dashboard() {
                   {types.map((t, i) => {
                     const pct = typeTotal > 0 ? Math.round((t.value / typeTotal) * 100) : 0;
                     return (
-                      <div
-                        key={t.name}
-                        className="flex items-center justify-between text-xs"
-                      >
+                      <div key={t.name} className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2 truncate">
                           <span
                             className="size-2 rounded-full shrink-0"

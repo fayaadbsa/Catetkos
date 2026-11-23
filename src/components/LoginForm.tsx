@@ -1,11 +1,13 @@
+'use client';
+
 import { useState } from 'react';
-import { api, errMsg } from '../lib/api';
-import { useAuth } from '../lib/auth';
-import { Button, Input, Label, Card } from '../components/ui';
-import { Logo } from '../components/shell/Logo';
+import { api, errMsg } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+import { Button, Input, Label, Card } from '@/components/ui';
+import { Logo } from '@/components/shell/Logo';
 
 export default function Login() {
-  const { refresh } = useAuth();
+  const router = useRouter();
   const [f, setF] = useState({ username: '', password: '' });
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
@@ -15,8 +17,9 @@ export default function Login() {
     setErr('');
     setBusy(true);
     try {
-      await api('/login', { body: f });
-      await refresh();
+      await api('/auth/login', { body: f });
+      router.replace('/dashboard');
+      router.refresh();
     } catch (x) {
       setErr(errMsg(x));
     } finally {

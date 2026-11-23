@@ -1,6 +1,8 @@
+'use client';
+
 import { Building2 } from 'lucide-react';
-import { useKos } from '../../lib/kos';
-import { Select } from '../ui';
+import { useKos } from '@/lib/kos';
+import { Select } from '@/components/ui';
 
 // Ganti kos aktif dengan tampilan modern tactile
 export function KosSwitcher() {

@@ -1,6 +1,8 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { CheckCircle2, AlertTriangle } from 'lucide-react';
-import { cn, type ToastDetail } from '../../lib/api';
+import { cn, type ToastDetail } from '@/lib/api';
 
 export function Toaster() {
   const [t, setT] = useState<ToastDetail | null>(null);
@@ -23,9 +25,7 @@ export function Toaster() {
       role="status"
       className={cn(
         'fixed left-1/2 top-[calc(1rem+env(safe-area-inset-top))] z-60 flex max-w-[90vw] -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2.5 text-xs md:text-sm font-semibold shadow-floating backdrop-blur-xl border transition-all animate-in fade-in slide-in-from-top-2 duration-200',
-        t.bad
-          ? 'border-danger/30 bg-danger text-white'
-          : 'border-ok/30 bg-primary text-primary-fg'
+        t.bad ? 'border-danger/30 bg-danger text-white' : 'border-ok/30 bg-primary text-primary-fg',
       )}
     >
       {t.bad ? (

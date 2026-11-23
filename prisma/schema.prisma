@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  runtime  = "nodejs"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id          Int          @id @default(autoincrement())
+  username    String       @unique
+  hash        String
+  salt        String
+  memberships Membership[]
+
+  @@map("users")
+}
+
+// Dipertahankan dari skema v3 supaya baseline cocok dengan DB produksi. Sesi sekarang JWT, tabel ini tidak dipakai.
+model Session {
+  token   String @id
+  userId  Int    @map("user_id")
+  expires BigInt
+
+  @@map("sessions")
+}
+
+model Kos {
+  id           Int           @id @default(autoincrement())
+  name         String
+  memberships  Membership[]
+  roomTypes    RoomType[]
+  rooms        Room[]
+  promos       Promo[]
+  guests       Guest[]
+  bookings     Booking[]
+  categories   Category[]
+  transactions Transaction[]
+
+  @@map("kos")
+}
+
+model Membership {
+  userId Int  @map("user_id")
+  kosId  Int  @map("kos_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kos    Kos  @relation(fields: [kosId], references: [id], onDelete: Cascade)
+
+  @@id([userId, kosId])
+  @@index([kosId], map: "idx_mem_kos")
+  @@map("memberships")
+}
+
+model RoomType {
+  id        Int     @id @default(autoincrement())
+  kosId     Int     @map("kos_id")
+  name      String
+  basePrice Int     @map("base_price")
+  capacity  Int     @default(1)
+  archived  Int     @default(0)
+  kos       Kos     @relation(fields: [kosId], references: [id], onDelete: Cascade)
+  rooms     Room[]
+  promos    Promo[]
+
+  @@unique([kosId, name])
+  @@map("room_types")
+}
+
+model Room {
+  id            Int           @id @default(autoincrement())
+  kosId         Int           @map("kos_id")
+  number        String
+  roomTypeId    Int           @map("room_type_id")
+  priceOverride Int?          @map("price_override")
+  archived      Int           @default(0)
+  kos           Kos           @relation(fields: [kosId], references: [id], onDelete: Cascade)
+  roomType      RoomType      @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
+  bookings      Booking[]
+  transactions  Transaction[]
+
+  @@unique([kosId, number])
+  @@index([kosId], map: "idx_rooms_kos")
+  @@map("rooms")
+}
+
+model Promo {
+  id         Int       @id @default(autoincrement())
+  name       String
+  roomTypeId Int?      @map("room_type_id")
+  price      Int
+  startDate  String    @map("start_date")
+  endDate    String    @map("end_date")
+  kosId      Int       @map("kos_id")
+  roomType   RoomType? @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  kos        Kos       @relation(fields: [kosId], references: [id], onDelete: Cascade)
+  bookings   Booking[]
+
+  @@map("promos")
+}
+
+model Guest {
+  id       Int       @id @default(autoincrement())
+  name     String
+  phone    String?
+  note     String?
+  kosId    Int       @map("kos_id")
+  kos      Kos       @relation(fields: [kosId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@map("guests")
+}
+
+model Booking {
+  id                  Int           @id @default(autoincrement())
+  roomId              Int           @map("room_id")
+  guestId             Int           @map("guest_id")
+  promoId             Int?          @map("promo_id")
+  checkIn             String        @map("check_in")
+  checkOut            String        @map("check_out")
+  priceTotal          Int           @map("price_total")
+  status              String        @default("booked")
+  note                String?
+  deposit             Int           @default(0)
+  depositPaidDate     String?       @map("deposit_paid_date")
+  depositReturnedDate String?       @map("deposit_returned_date")
+  kosId               Int           @map("kos_id")
+  room                Room          @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  guest               Guest         @relation(fields: [guestId], references: [id], onDelete: Restrict)
+  promo               Promo?        @relation(fields: [promoId], references: [id], onDelete: SetNull)
+  kos                 Kos           @relation(fields: [kosId], references: [id], onDelete: Cascade)
+  transactions        Transaction[]
+
+  @@index([roomId, checkIn], map: "idx_bookings_room")
+  @@index([kosId], map: "idx_bookings_kos")
+  @@map("bookings")
+}
+
+model Category {
+  id           Int           @id @default(autoincrement())
+  kosId        Int           @map("kos_id")
+  kind         String
+  name         String
+  kos          Kos           @relation(fields: [kosId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([kosId, kind, name])
+  @@map("categories")
+}
+
+model Transaction {
+  id         Int      @id @default(autoincrement())
+  categoryId Int      @map("category_id")
+  bookingId  Int?     @map("booking_id")
+  roomId     Int?     @map("room_id")
+  date       String
+  amount     Int
+  method     String?
+  note       String?
+  kosId      Int      @map("kos_id")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  booking    Booking? @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  room       Room?    @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  kos        Kos      @relation(fields: [kosId], references: [id], onDelete: Cascade)
+
+  @@index([date], map: "idx_tx_date")
+  @@index([bookingId], map: "idx_tx_booking")
+  @@index([kosId, date], map: "idx_tx_kos")
+  @@map("transactions")
+}

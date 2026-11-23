@@ -1,6 +1,8 @@
+'use client';
+
 import { useState, type ReactNode } from 'react';
 import { Filter as FunnelIcon, X } from 'lucide-react';
-import { cn } from '../../lib/api';
+import { cn } from '@/lib/api';
 import { Modal } from './Modal';
 import { Button } from './Button';
 
@@ -30,7 +32,7 @@ export function FilterButton({
           'relative inline-flex size-10 md:size-9 shrink-0 items-center justify-center rounded-lg border transition-all active:scale-95',
           filters.length
             ? 'border-tx bg-soft text-tx shadow-xs font-semibold'
-            : 'border-line bg-surface text-mut hover:border-tx/40 hover:text-tx'
+            : 'border-line bg-surface text-mut hover:border-tx/40 hover:text-tx',
         )}
       >
         <FunnelIcon size={16} aria-hidden />
@@ -56,17 +58,9 @@ export function FilterButton({
   );
 }
 
-export const FilterGroup = ({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) => (
+export const FilterGroup = ({ label, children }: { label: string; children: ReactNode }) => (
   <fieldset className="space-y-2">
-    <legend className="text-[11px] font-bold uppercase tracking-wider text-mut">
-      {label}
-    </legend>
+    <legend className="text-[11px] font-bold uppercase tracking-wider text-mut">{label}</legend>
     <div className="flex flex-wrap gap-1.5">{children}</div>
   </fieldset>
 );
@@ -88,7 +82,7 @@ export const FilterChip = ({
       'min-h-9 md:min-h-8 rounded-full px-3 text-xs font-semibold transition-all select-none active:scale-95',
       selected
         ? 'bg-primary text-primary-fg shadow-card'
-        : 'border border-line bg-surface text-mut hover:border-line hover:text-tx'
+        : 'border border-line bg-surface text-mut hover:border-line hover:text-tx',
     )}
   >
     {children}

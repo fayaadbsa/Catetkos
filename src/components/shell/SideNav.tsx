@@ -1,8 +1,11 @@
-import { NavLink } from 'react-router-dom';
+'use client';
+
 import { LogOut, Settings } from 'lucide-react';
-import { cn } from '../../lib/api';
-import { useAuth } from '../../lib/auth';
+import { cn } from '@/lib/api';
+import { useAuth } from '@/lib/me';
 import { NAV, ACCOUNT } from './nav-items';
+import { ICONS } from './nav-icons';
+import { NavLink } from './NavLink';
 import { Logo } from './Logo';
 import { KosSwitcher } from './KosSwitcher';
 
@@ -16,37 +19,38 @@ export function NavList({ onNavigate }: { onNavigate?: () => void }) {
             {group}
           </div>
           <div className="space-y-1">
-            {items.map(({ path, label, icon: Icon }) => (
-              <NavLink
-                key={path}
-                to={path}
-                onClick={onNavigate}
-                className={({ isActive }) =>
-                  cn(
-                    'group relative flex min-h-11 md:min-h-9 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition-all select-none active:scale-[0.98]',
-                    isActive
-                      ? 'bg-soft text-tx font-bold shadow-card'
-                      : 'text-mut hover:bg-soft/70 hover:text-tx'
-                  )
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <Icon
-                      size={18}
-                      className={cn(
-                        'shrink-0 transition-colors',
-                        isActive ? 'text-brand' : 'text-mut group-hover:text-tx'
-                      )}
-                    />
-                    <span className="truncate">{label}</span>
-                    {isActive && (
-                      <span className="ml-auto size-1.5 rounded-full bg-brand" />
-                    )}
-                  </>
-                )}
-              </NavLink>
-            ))}
+            {items.map(({ path, label, icon }) => {
+              const Icon = ICONS[icon];
+              return (
+                <NavLink
+                  key={path}
+                  to={path}
+                  onClick={onNavigate}
+                  className={({ isActive }) =>
+                    cn(
+                      'group relative flex min-h-11 md:min-h-9 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition-all select-none active:scale-[0.98]',
+                      isActive
+                        ? 'bg-soft text-tx font-bold shadow-card'
+                        : 'text-mut hover:bg-soft/70 hover:text-tx',
+                    )
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Icon
+                        size={18}
+                        className={cn(
+                          'shrink-0 transition-colors',
+                          isActive ? 'text-brand' : 'text-mut group-hover:text-tx',
+                        )}
+                      />
+                      <span className="truncate">{label}</span>
+                      {isActive && <span className="ml-auto size-1.5 rounded-full bg-brand" />}
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
           </div>
         </div>
       ))}
@@ -68,12 +72,8 @@ export function UserFooter({ onNavigate }: { onNavigate?: () => void }) {
           {(me?.username || '?')[0]}
         </span>
         <span className="min-w-0">
-          <span className="block truncate text-sm font-bold text-tx">
-            {me?.username}
-          </span>
-          <span className="block text-[11px] font-medium text-mut">
-            Pemilik Utama
-          </span>
+          <span className="block truncate text-sm font-bold text-tx">{me?.username}</span>
+          <span className="block text-[11px] font-medium text-mut">Pemilik Utama</span>
         </span>
       </NavLink>
       <NavLink

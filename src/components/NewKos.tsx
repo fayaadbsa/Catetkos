@@ -1,16 +1,16 @@
+'use client';
+
 import { useState } from 'react';
-import { errMsg } from '../lib/api';
-import { Button, Card, Input, Label } from '../components/ui';
-import { Logo } from '../components/shell/Logo';
-import { useAuth } from '../lib/auth';
+import { useRouter } from 'next/navigation';
+import { api, errMsg } from '@/lib/api';
+import { Button, Card, Input, Label } from '@/components/ui';
+import { Logo } from '@/components/shell/Logo';
+import { useAuth } from '@/lib/me';
 
 // Layar onboarding akun yang belum punya kos.
-export default function NewKos({
-  onCreate,
-}: {
-  onCreate: (name: string) => Promise<void>;
-}) {
+export default function NewKos() {
   const { logout } = useAuth();
+  const router = useRouter();
   const [name, setName] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
@@ -20,7 +20,8 @@ export default function NewKos({
     setErr('');
     setBusy(true);
     try {
-      await onCreate(name);
+      await api('/kos', { body: { name } });
+      router.refresh();
     } catch (x) {
       setErr(errMsg(x));
     } finally {
@@ -34,7 +35,8 @@ export default function NewKos({
         <Logo size={42} className="mb-4" />
         <h2 className="text-lg font-bold text-tx">Selamat Datang di Catetkos</h2>
         <p className="mt-1 mb-5 text-xs md:text-sm text-mut leading-relaxed">
-          Belum ada kos terdaftar. Masukkan nama kos pertamamu, atau minta pemilik kos menambahkan username kamu.
+          Belum ada kos terdaftar. Masukkan nama kos pertamamu, atau minta pemilik kos menambahkan
+          username kamu.
         </p>
 
         <form onSubmit={submit} className="space-y-4">

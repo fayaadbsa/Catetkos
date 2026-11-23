@@ -10,48 +10,55 @@ Panduan untuk agent (dan manusia) yang mengerjakan repo ini.
 
 ## Stack
 
-- Frontend: React 18, Vite, TypeScript, Tailwind 3, react-router, Recharts, lucide-react.
-- Backend: Node 22 tanpa framework (`node:http`), SQLite lewat `node:sqlite`.
-- Test: `node --test` (unit/integrasi), Playwright (e2e, profil iPhone 13).
-- Deploy: Docker di VPS, `./deploy.sh`.
+- Next.js 16 (App Router), React 19, TypeScript, Tailwind 4, Recharts, lucide-react.
+- Data: SQLite lewat Prisma 7 (adapter libsql). Query bisnis lewat `$queryRawUnsafe` di `src/lib/resources.ts` dan `dashboard.ts`.
+- Auth: JWT (`jose`) di cookie httpOnly `session`. Kos aktif di cookie `kos`.
+- Runtime dan package manager: Bun. Test: `node --test` lewat `tsx`, Playwright e2e (profil iPhone 13).
+- Deploy: Docker standalone di VPS, `./deploy.sh` (manual, tanpa CI).
 
 ## Peta kode
 
 | Path | Isi |
 |---|---|
-| `src/pages/` | Satu file per halaman. `Resources.tsx` = halaman CRUD berbasis config |
+| `src/app/(app)/` | Halaman terautentikasi, satu `page.tsx` per rute. `layout.tsx` = auth gate + `AppShell` |
+| `src/app/login/` | Halaman login |
+| `src/app/api/` | Route handler: `auth`, `kos`, `dashboard`, `quote`, `bookings`, dan CRUD generik `[resource]/[id]` |
+| `src/app/manifest.ts` | Manifest PWA |
+| `src/proxy.ts` | Gerbang kasar: tanpa JWT valid, halaman ke `/login`, `/api` 401 |
 | `src/components/ui/` | Primitif UI (Button, Card, Form, Modal, DataTable, Filter, Tabs, Toaster) |
-| `src/components/shell/` | Layout: sidebar, header mobile, tab bar, `nav-items.ts` |
+| `src/components/shell/` | Sidebar, header mobile, tab bar, `nav-items.ts` (data) + `nav-icons.ts` (ikon) |
 | `src/components/Crud.tsx` | CRUD generik yang dipakai hampir semua entity |
-| `src/lib/` | `api.ts` (fetch, `rp`, `cn`, toast), auth, kos aktif, tema |
-| `server/index.js` | HTTP server, routing `/api`, static `dist` |
-| `server/resources.js` | CRUD per resource, booking, quote, validasi |
-| `server/db.js` | Skema + migrasi, kos dan membership |
-| `server/dashboard.js` | Query analitik dashboard |
-| `server/auth.js` | Hash password (scrypt), sesi |
-| `scripts/` | Seed dan utilitas akun |
-| `test/`, `e2e/` | Test node dan Playwright |
+| `src/lib/db.ts` | Singleton PrismaClient |
+| `src/lib/resources.ts` | Definisi entity, validasi, booking, quote |
+| `src/lib/membership.ts` | Kos, anggota, `resolveKos` |
+| `src/lib/session.ts`, `auth.ts`, `password.ts` | JWT + cookie, `getCurrentUser`/`requireUser`, scrypt |
+| `src/lib/server-api.ts` | Pembungkus route handler, `withKos`, rate limit login |
+| `src/lib/api.ts` | Client fetch, `rp`, `cn`, toast |
+| `prisma/` | `schema.prisma` + migrasi |
+| `scripts/` | Seed dan utilitas akun (jalan lewat `tsx` atau `bun`) |
+| `tests/`, `e2e/` | Test node dan Playwright |
 
 ## Perintah
 
 ```bash
-npm start            # API + static di :3005
-npm run dev          # Vite, proxy /api ke :3005
-npm run typecheck
-npm test
-npm run build && npm run test:e2e
+bun run dev          # http://localhost:3005
+bun run typecheck
+bun run lint
+bun run test
+bun run build && bun run test:e2e
 ```
 
-Sebelum bilang selesai: `npm run typecheck` dan `npm test` harus lolos. Perubahan UI atau alur: jalankan juga e2e.
+Sebelum bilang selesai: `typecheck`, `lint`, dan `test` harus lolos. Perubahan UI atau alur: jalankan juga e2e.
 
 ## Aturan kode
 
-- **Navigasi satu sumber.** Halaman baru didaftarkan di `src/components/shell/nav-items.ts`; rute, sidebar, dan halaman "Lainnya" ikut dari situ.
-- **Entity baru pakai `Crud`.** Tambah config di `src/pages/Resources.tsx` dan resource di `server/resources.js`, jangan bikin halaman CRUD dari nol.
-- **Migrasi hanya ditambah.** Tambah entri baru di akhir array `MIGRATIONS` di `server/db.js`. Jangan edit migrasi lama.
-- **Semua data bisnis ber-`kos_id`.** Setiap query dan endpoint wajib dibatasi ke kos aktif dan cek membership. Jangan pernah percaya `kos_id` dari client tanpa cek.
+- **Navigasi satu sumber.** Halaman baru: buat `src/app/(app)/<path>/page.tsx`, lalu daftarkan di `nav-items.ts` (path, label, nama ikon) dan `nav-icons.ts`. Sidebar dan halaman "Lainnya" ikut dari situ.
+- **Entity baru pakai `Crud`.** Tambah model di `schema.prisma`, resource di `src/lib/resources.ts`, dan satu `page.tsx` yang memakai `Crud`. Jangan bikin halaman CRUD dari nol.
+- **Migrasi hanya ditambah.** Perubahan skema = migrasi Prisma baru (`prisma migrate dev`). Jangan edit migrasi lama. CHECK constraint ditulis manual di SQL migrasi. DB produksi tidak pernah di-reset.
+- **Semua data bisnis ber-`kos_id`.** Setiap query dan endpoint wajib dibatasi ke kos aktif. Handler data memakai `withKos()`: cookie `kos` hanya preferensi, membership dicek ke DB di setiap request. Jangan pernah percaya `kos_id` dari client.
 - **Validasi final di server.** Client boleh membantu, server yang memutuskan. Uang disimpan sebagai integer Rupiah.
-- **`/api` tidak pernah di-cache** oleh service worker.
+- **`/api` tidak pernah di-cache** oleh service worker. `sw.js` disajikan dengan header no-cache.
+- **Komponen interaktif** pakai `'use client'`. Akses DB dan session hanya di server (`server-only`).
 - **UI pakai token semantik** (`bg-surface`, `text-mut`, `border-line`), bukan hex mentah. Lihat `DESIGN.md`.
 - **Mobile dulu.** Target sentuh 44px (`min-h-11`), input 16px di mobile, hormati safe-area.
 - **Teks UI bahasa Indonesia santai**, singkat. Status berwarna selalu punya label teks.

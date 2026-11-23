@@ -45,7 +45,7 @@ Direncanakan (belum ada, jangan diklaim sudah jalan):
 - RBAC: peran per membership (owner, penjaga, dsb).
 - Pemakaian multi-kos penuh. Untuk sekarang alur default 1 user 1 kos, tapi model data dan UI harus tetap bisa diperluas.
 
-Stack: React 18 + Vite + Tailwind 3, Node server dengan `node:sqlite`, Playwright e2e, deploy via Docker.
+Stack: Next.js 16 + React 19 + Tailwind 4, Prisma + SQLite, Bun, Playwright e2e, deploy via Docker.
 
 Istilah: kos, kamar, tipe kamar, tamu, booking, promo, pemasukan, biaya, modal, kategori, anggota, lunas / belum lunas.
 

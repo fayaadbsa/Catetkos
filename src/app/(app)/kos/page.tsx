@@ -1,9 +1,11 @@
+'use client';
+
 import { useEffect, useState } from 'react';
-import { Trash2, Building2, UserPlus, CheckCircle2 } from 'lucide-react';
-import { api, toast, errMsg } from '../lib/api';
-import { useKos } from '../lib/kos';
-import type { Member } from '../lib/types';
-import { Button, Card, Input, Label, PageHeader, Badge } from '../components/ui';
+import { Trash2, Building2, UserPlus } from 'lucide-react';
+import { api, toast, errMsg } from '@/lib/api';
+import { useKos } from '@/lib/kos';
+import type { Member } from '@/lib/types';
+import { Button, Card, Input, Label, PageHeader, Badge } from '@/components/ui';
 
 // Kelola kos: bikin kos baru + atur siapa yang boleh akses kos aktif (many-to-many).
 export default function KosPage() {
@@ -118,9 +120,7 @@ export default function KosPage() {
             <div className="flex items-center gap-2 border-b border-line/60 pb-3 mb-4">
               <UserPlus size={18} className="text-brand" />
               <div>
-                <h2 className="text-base font-bold text-tx">
-                  Anggota {active.name}
-                </h2>
+                <h2 className="text-base font-bold text-tx">Anggota {active.name}</h2>
                 <p className="text-xs text-mut">
                   Pengguna yang memiliki hak akses untuk melihat & mengubah data kos ini.
                 </p>

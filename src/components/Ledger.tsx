@@ -1,14 +1,11 @@
-// Konfigurasi tiap halaman di atas Crud generik.
-import { useNavigate } from 'react-router-dom';
-import { rp, today } from '../lib/api';
-import { useList } from '../lib/useList';
-import type { Row } from '../lib/types';
-import Crud from '../components/Crud';
-import PromoCalc from '../components/PromoCalc';
-import { SEM } from '../lib/theme';
+'use client';
+
+import { rp, today } from '@/lib/api';
+import { useList } from '@/lib/useList';
+import type { Row } from '@/lib/types';
+import Crud from '@/components/Crud';
+import { opts } from '@/components/resource-helpers';
 import {
-  Badge,
-  Button,
   Card,
   FilterButton,
   FilterChip,
@@ -16,169 +13,9 @@ import {
   FilterSheet,
   useFilterSheet,
   type ActiveFilter,
-} from '../components/ui';
+} from '@/components/ui';
 
-const opts = (rows: Row[], l: (r: Row) => string) =>
-  rows.map((r) => ({ v: r.id, l: l(r) }));
-
-const activeBadge = (r: Row) =>
-  r.archived ? <Badge>Arsip</Badge> : <Badge color={SEM.ok}>Aktif</Badge>;
-
-export function RoomTypes() {
-  return (
-    <Crud
-      resource="room-types"
-      title="Tipe kamar"
-      desc="Grup kamar dengan fasilitas dan harga dasar yang sama."
-      empty="Belum ada tipe kamar. Bikin satu dulu, nanti kamar tinggal pilih."
-      columns={[
-        { key: 'name', label: 'Tipe Kamar', fmt: (r) => <span className="font-bold">{r.name}</span> },
-        {
-          key: 'base_price',
-          label: 'Harga Dasar / Bln',
-          align: 'right',
-          fmt: (r) => <span className="font-mono font-bold text-tx">{rp(r.base_price)}</span>,
-        },
-        { key: 'capacity', label: 'Kapasitas', align: 'center', fmt: (r) => `${r.capacity} orang` },
-        { key: 'room_count', label: 'Kamar Aktif', align: 'center', fmt: (r) => `${r.room_count} kamar` },
-        { key: 'archived', label: 'Status', fmt: activeBadge },
-      ]}
-      fields={[
-        { key: 'name', label: 'Nama tipe', req: 1 },
-        { key: 'base_price', label: 'Harga dasar / bulan', type: 'number', req: 1 },
-        { key: 'capacity', label: 'Kapasitas (orang)', type: 'number' },
-        { key: 'archived', label: 'Arsip (nonaktifkan)', type: 'bool' },
-      ]}
-      defaults={{ capacity: 1, archived: 0 }}
-    />
-  );
-}
-
-export function Rooms() {
-  const [types] = useList('room-types');
-  const nav = useNavigate();
-  return (
-    <Crud
-      resource="rooms"
-      title="Kamar"
-      desc="Daftar kamar fisik. Harga otomatis ikut tipe kecuali diisi harga khusus."
-      canAdd={types.length > 0}
-      defaults={{ archived: 0 }}
-      empty={
-        types.length
-          ? 'Belum ada kamar fisik tercatat.'
-          : 'Belum ada tipe kamar. Bikin tipe dulu, baru kamar.'
-      }
-      emptyAction={
-        !types.length && (
-          <Button onClick={() => nav('/room-types')}>Bikin Tipe Kamar</Button>
-        )
-      }
-      columns={[
-        { key: 'number', label: 'Nomor Kamar', fmt: (r) => <span className="font-mono font-bold">Kamar {r.number}</span> },
-        { key: 'type_name', label: 'Tipe' },
-        {
-          key: 'price',
-          label: 'Harga / Bulan',
-          align: 'right',
-          fmt: (r) => (
-            <span className="font-mono font-bold text-tx">
-              {rp(r.price)}
-              {r.price_override ? ' *' : ''}
-            </span>
-          ),
-        },
-        { key: 'archived', label: 'Status', fmt: activeBadge },
-      ]}
-      fields={[
-        { key: 'number', label: 'Nomor kamar', req: 1 },
-        {
-          key: 'room_type_id',
-          label: 'Tipe kamar',
-          type: 'select',
-          req: 1,
-          options: opts(types, (t) => `${t.name} (${rp(t.base_price)})`),
-        },
-        {
-          key: 'price_override',
-          label: 'Harga khusus / bulan (opsional)',
-          type: 'number',
-          hint: () =>
-            'Kosongkan buat pakai harga tipe. Tanda * di tabel = harga khusus.',
-        },
-        { key: 'archived', label: 'Arsip (nonaktifkan)', type: 'bool' },
-      ]}
-    />
-  );
-}
-
-export function Guests() {
-  return (
-    <Crud
-      resource="guests"
-      title="Tamu"
-      desc="Daftar penyewa yang otomatis bertambah setiap bikin booking tamu baru."
-      empty="Belum ada tamu. Tamu otomatis muncul saat bikin booking."
-      columns={[
-        { key: 'name', label: 'Nama Tamu', fmt: (r) => <span className="font-bold">{r.name}</span> },
-        { key: 'phone', label: 'Nomor HP', fmt: (r) => r.phone ? <span className="font-mono text-tx">{r.phone}</span> : '-' },
-        { key: 'booking_count', label: 'Total Booking', align: 'center', fmt: (r) => `${r.booking_count} kali` },
-        { key: 'note', label: 'Catatan', fmt: (r) => r.note || '-' },
-      ]}
-      fields={[
-        { key: 'name', label: 'Nama tamu', req: 1 },
-        { key: 'phone', label: 'Nomor HP / WhatsApp' },
-        { key: 'note', label: 'Catatan' },
-      ]}
-    />
-  );
-}
-
-export function Promos() {
-  const [types] = useList('room-types');
-  return (
-    <div className="space-y-8">
-      <Crud
-        resource="promos"
-        title="Promo"
-        desc="Harga spesial per periode. Dipakai otomatis saat quote & booking."
-        empty="Belum ada promo aktif."
-        columns={[
-          { key: 'name', label: 'Nama Promo', fmt: (r) => <span className="font-bold">{r.name}</span> },
-          {
-            key: 'type_name',
-            label: 'Berlaku Untuk',
-            fmt: (r) => r.type_name ? <Badge>{r.type_name}</Badge> : <Badge color={SEM.ok}>Semua Tipe</Badge>,
-          },
-          {
-            key: 'price',
-            label: 'Harga Promo / Bln',
-            align: 'right',
-            fmt: (r) => <span className="font-mono font-bold text-brand">{rp(r.price)}</span>,
-          },
-          { key: 'start_date', label: 'Mulai', fmt: (r) => <span className="font-mono">{r.start_date}</span> },
-          { key: 'end_date', label: 'Sampai', fmt: (r) => <span className="font-mono">{r.end_date}</span> },
-        ]}
-        fields={[
-          { key: 'name', label: 'Nama promo', req: 1 },
-          {
-            key: 'room_type_id',
-            label: 'Tipe kamar',
-            type: 'select',
-            options: opts(types, (t) => t.name),
-            hint: () => 'Kosongkan jika berlaku untuk semua tipe kamar',
-          },
-          { key: 'price', label: 'Harga promo / bulan', type: 'number', req: 1 },
-          { key: 'start_date', label: 'Mulai berlaku', type: 'date', req: 1 },
-          { key: 'end_date', label: 'Sampai dengan', type: 'date', req: 1 },
-        ]}
-      />
-      <PromoCalc />
-    </div>
-  );
-}
-
-const KINDS: Record<string, string[]> = {
+export const KINDS: Record<string, string[]> = {
   income: ['Pemasukan', 'Pemasukan operasional & sewa'],
   expense: ['Biaya', 'Biaya rutin & operasional'],
   capital: ['Modal', 'Modal awal & investasi'],
@@ -194,13 +31,12 @@ const monLabel = (m: string) => `${MONS[+m.slice(5) - 1]} ${m.slice(2, 4)}`;
 const dmy = (s?: string) =>
   s ? `${+s.slice(8)} ${MONS[+s.slice(5, 7) - 1]} ${s.slice(2, 4)}` : '-';
 
-// Tabel buku kas + filter bulan / kategori / kamar lewat bottom sheet.
-function Ledger({ kind }: { kind: string }) {
+export default function Ledger({ kind }: { kind: string }) {
   const [cats] = useList('categories');
   const [rooms] = useList('rooms');
   const catOpts = opts(
     cats.filter((c) => c.kind === kind),
-    (c) => c.name
+    (c) => c.name,
   );
   const f = useFilterSheet<{ month: string; cat: number; room: number }>({
     month: '',
@@ -214,9 +50,27 @@ function Ledger({ kind }: { kind: string }) {
     (!room || r.room_id === room);
 
   const active: ActiveFilter[] = [
-    ...(month ? [{ key: 'm', label: monLabel(month), onRemove: () => f.set({ ...f.applied, month: '' }) }] : []),
-    ...(cat ? [{ key: 'c', label: cats.find((c) => c.id === cat)?.name ?? 'Kategori', onRemove: () => f.set({ ...f.applied, cat: 0 }) }] : []),
-    ...(room ? [{ key: 'r', label: `Kamar ${rooms.find((r) => r.id === room)?.number ?? ''}`, onRemove: () => f.set({ ...f.applied, room: 0 }) }] : []),
+    ...(month
+      ? [{ key: 'm', label: monLabel(month), onRemove: () => f.set({ ...f.applied, month: '' }) }]
+      : []),
+    ...(cat
+      ? [
+          {
+            key: 'c',
+            label: cats.find((c) => c.id === cat)?.name ?? 'Kategori',
+            onRemove: () => f.set({ ...f.applied, cat: 0 }),
+          },
+        ]
+      : []),
+    ...(room
+      ? [
+          {
+            key: 'r',
+            label: `Kamar ${rooms.find((r) => r.id === room)?.number ?? ''}`,
+            onRemove: () => f.set({ ...f.applied, room: 0 }),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -361,9 +215,7 @@ function Ledger({ kind }: { kind: string }) {
           label: 'Nominal',
           align: 'right',
           fmt: (r) => (
-            <span className="font-mono font-bold tabular-nums text-tx">
-              {rp(r.amount)}
-            </span>
+            <span className="font-mono font-bold tabular-nums text-tx">{rp(r.amount)}</span>
           ),
         },
         {
@@ -397,39 +249,6 @@ function Ledger({ kind }: { kind: string }) {
         },
         { key: 'method', label: 'Metode pembayaran (mis. Transfer, Tunai, QRIS)' },
         { key: 'note', label: 'Catatan / Keterangan' },
-      ]}
-    />
-  );
-}
-
-export const Income = () => <Ledger kind="income" />;
-export const Expense = () => <Ledger kind="expense" />;
-export const Capital = () => <Ledger kind="capital" />;
-
-export function Categories() {
-  return (
-    <Crud
-      resource="categories"
-      title="Kategori"
-      desc="Label pengelompokan transaksi pemasukan, biaya, dan modal."
-      columns={[
-        {
-          key: 'kind',
-          label: 'Jenis Transaksi',
-          fmt: (r) => <Badge>{KINDS[r.kind]?.[0] || r.kind}</Badge>,
-        },
-        { key: 'name', label: 'Nama Kategori', fmt: (r) => <span className="font-bold">{r.name}</span> },
-        { key: 'uses', label: 'Dipakai', align: 'center', fmt: (r) => `${r.uses} transaksi` },
-      ]}
-      fields={[
-        {
-          key: 'kind',
-          label: 'Jenis transaksi',
-          type: 'select',
-          req: 1,
-          options: Object.entries(KINDS).map(([v, [l]]) => ({ v, l })),
-        },
-        { key: 'name', label: 'Nama kategori', req: 1 },
       ]}
     />
   );

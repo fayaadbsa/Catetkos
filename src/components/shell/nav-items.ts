@@ -1,35 +1,58 @@
-import { Building2, LayoutDashboard, CalendarCheck, CalendarDays, BedDouble, Users, Tag, Layers, ListChecks, ArrowDownToLine, ArrowUpFromLine, Landmark, UserCircle, Grid2x2, type LucideIcon } from 'lucide-react';
-import type { ComponentType } from 'react';
-import Dashboard from '../../pages/Dashboard';
-import Calendar from '../../pages/Calendar';
-import Bookings from '../../pages/Bookings';
-import KosPage from '../../pages/KosPage';
-import More from '../../pages/More';
-import Account from '../../pages/Account';
-import { Rooms, RoomTypes, Guests, Promos, Categories, Income, Expense, Capital } from '../../pages/Resources';
+// Satu sumber navigasi. Cuma data (path, label, nama ikon), jadi aman dipakai server maupun client.
+// Ikon dipetakan ke komponen di nav-icons.ts, halaman = satu page.tsx per path di src/app/(app)/.
+export type IconName =
+  | 'dashboard'
+  | 'booking'
+  | 'calendar'
+  | 'guests'
+  | 'promo'
+  | 'income'
+  | 'expense'
+  | 'capital'
+  | 'room-types'
+  | 'rooms'
+  | 'categories'
+  | 'kos'
+  | 'account'
+  | 'more';
 
-export interface NavItem { path: string; label: string; icon: LucideIcon; page: ComponentType }
+export interface NavItem {
+  path: string;
+  label: string;
+  icon: IconName;
+}
 
-// Satu sumber navigasi + rute. URL tetap (path nyata), bisa di-bookmark / di-refresh.
 export const NAV: { group: string; items: NavItem[] }[] = [
-  { group: 'Ringkasan', items: [{ path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, page: Dashboard }] },
-  { group: 'Operasional', items: [
-    { path: '/bookings', label: 'Booking', icon: CalendarCheck, page: Bookings },
-    { path: '/calendar', label: 'Kalender', icon: CalendarDays, page: Calendar },
-    { path: '/guests', label: 'Tamu', icon: Users, page: Guests },
-    { path: '/promo', label: 'Promo', icon: Tag, page: Promos }] },
-  { group: 'Keuangan', items: [
-    { path: '/income', label: 'Pemasukan', icon: ArrowDownToLine, page: Income },
-    { path: '/expense', label: 'Biaya', icon: ArrowUpFromLine, page: Expense },
-    { path: '/capital', label: 'Modal', icon: Landmark, page: Capital }] },
-  { group: 'Data master', items: [
-    { path: '/room-types', label: 'Tipe kamar', icon: Layers, page: RoomTypes },
-    { path: '/rooms', label: 'Kamar', icon: BedDouble, page: Rooms },
-    { path: '/categories', label: 'Kategori', icon: ListChecks, page: Categories },
-    { path: '/kos', label: 'Kos & anggota', icon: Building2, page: KosPage }] },
+  { group: 'Ringkasan', items: [{ path: '/dashboard', label: 'Dashboard', icon: 'dashboard' }] },
+  {
+    group: 'Operasional',
+    items: [
+      { path: '/bookings', label: 'Booking', icon: 'booking' },
+      { path: '/calendar', label: 'Kalender', icon: 'calendar' },
+      { path: '/guests', label: 'Tamu', icon: 'guests' },
+      { path: '/promo', label: 'Promo', icon: 'promo' },
+    ],
+  },
+  {
+    group: 'Keuangan',
+    items: [
+      { path: '/income', label: 'Pemasukan', icon: 'income' },
+      { path: '/expense', label: 'Biaya', icon: 'expense' },
+      { path: '/capital', label: 'Modal', icon: 'capital' },
+    ],
+  },
+  {
+    group: 'Data master',
+    items: [
+      { path: '/room-types', label: 'Tipe kamar', icon: 'room-types' },
+      { path: '/rooms', label: 'Kamar', icon: 'rooms' },
+      { path: '/categories', label: 'Kategori', icon: 'categories' },
+      { path: '/kos', label: 'Kos & anggota', icon: 'kos' },
+    ],
+  },
 ];
-export const ACCOUNT: NavItem = { path: '/account', label: 'Akun', icon: UserCircle, page: Account };
-export const MORE: NavItem = { path: '/more', label: 'Lainnya', icon: Grid2x2, page: More };
+export const ACCOUNT: NavItem = { path: '/account', label: 'Akun', icon: 'account' };
+export const MORE: NavItem = { path: '/more', label: 'Lainnya', icon: 'more' };
 export const ALL_ITEMS = [...NAV.flatMap((g) => g.items), ACCOUNT, MORE];
 export const HOME = '/dashboard';
 // Tab bawah mobile (+ tombol "Menu" buat sisanya).

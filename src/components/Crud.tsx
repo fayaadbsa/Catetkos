@@ -1,8 +1,10 @@
+'use client';
+
 // CRUD generik berbasis config. Dipakai semua entity. Validasi final di server, error ditampilkan sebagai toast.
 import { useEffect, useState, type ReactNode } from 'react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { api, toast, errMsg } from '../lib/api';
-import type { Row, Form } from '../lib/types';
+import { api, toast, errMsg } from '@/lib/api';
+import type { Row, Form } from '@/lib/types';
 import {
   Button,
   PageHeader,
@@ -35,7 +37,7 @@ interface CrudProps {
   canAdd?: boolean;
   onChange?: (
     next: Form,
-    patch: Partial<Form>
+    patch: Partial<Form>,
   ) => Promise<Partial<Form> | void> | Partial<Form> | void;
   extra?: (form: Form, set: (p: Partial<Form>) => void) => ReactNode;
   actions?: (r: Row, reload: () => void) => ReactNode;
@@ -81,8 +83,8 @@ export default function Crud({
       .catch((e) => toast(errMsg(e), true));
 
   useEffect(() => {
-    setRows(null);
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resource, query]);
 
   const set = async (patch: Partial<Form>) => {
@@ -98,11 +100,8 @@ export default function Crud({
     e.preventDefault();
     setBusy(true);
     try {
-      const body = Object.fromEntries(
-        fields.map((f) => [f.key, form![f.key] ?? null])
-      );
-      if (form!.id)
-        await api(`/${resource}/${form!.id}`, { method: 'PUT', body });
+      const body = Object.fromEntries(fields.map((f) => [f.key, form![f.key] ?? null]));
+      if (form!.id) await api(`/${resource}/${form!.id}`, { method: 'PUT', body });
       else await api('/' + resource, { body });
       toast('Tersimpan');
       setForm(null);
@@ -134,11 +133,7 @@ export default function Crud({
     const v = fm[f.key] ?? '';
     if (f.type === 'select')
       return (
-        <Select
-          value={v}
-          onChange={(e) => set({ [f.key]: e.target.value })}
-          required={!!f.req}
-        >
+        <Select value={v} onChange={(e) => set({ [f.key]: e.target.value })} required={!!f.req}>
           <option value="">- Pilih {f.label} -</option>
           {f.options!.map((o) => (
             <option key={o.v} value={o.v}>
@@ -192,10 +187,7 @@ export default function Crud({
       {headerSlot}
 
       {form && (
-        <Modal
-          title={`${form.id ? 'Edit' : 'Tambah'} ${title}`}
-          onClose={() => setForm(null)}
-        >
+        <Modal title={`${form.id ? 'Edit' : 'Tambah'} ${title}`} onClose={() => setForm(null)}>
           <form onSubmit={save} className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
             {fields
               .filter((f) => !f.hide?.(form!))
@@ -205,9 +197,7 @@ export default function Crud({
                   {!!f.req && ' *'}
                   {input(f)}
                   {f.hint?.(form) && (
-                    <span className="mt-1 block text-xs font-normal text-mut">
-                      {f.hint(form)}
-                    </span>
+                    <span className="mt-1 block text-xs font-normal text-mut">{f.hint(form)}</span>
                   )}
                 </Label>
               ))}
@@ -216,11 +206,7 @@ export default function Crud({
               <Button disabled={busy} className="flex-1 md:flex-none">
                 {busy ? 'Menyimpan...' : 'Simpan'}
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setForm(null)}
-              >
+              <Button type="button" variant="ghost" onClick={() => setForm(null)}>
                 Batal
               </Button>
             </div>

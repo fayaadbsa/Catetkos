@@ -1,5 +1,4 @@
 data
-dist
 .env
 node_modules
 !seed/example/
@@ -7,3 +6,7 @@ seed/*.json
 test-results
 playwright-report
 research/*
+.next
+src/generated
+next-env.d.ts
+*.tsbuildinfo
