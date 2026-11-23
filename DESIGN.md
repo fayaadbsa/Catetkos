@@ -172,8 +172,9 @@ Palet tinta, kertas, dan pensil, dengan satu cap terakota. Nilai normatif ada di
 
 **Display Font:** Plus Jakarta Sans (dengan ui-sans-serif, system-ui)
 **Body Font:** Plus Jakarta Sans
+**Currency & Numerics:** JetBrains Mono (dengan tabular-nums untuk angka keuangan dan metrik)
 
-**Character:** Satu keluarga huruf, humanis-geometris dengan sentuhan lokal. Hierarki dari bobot (400 dan 600) dan warna Ink vs Pencil, bukan dari ukuran yang dramatis.
+**Character:** Tipografi presisi dan terbaca jelas. Plus Jakarta Sans untuk antarmuka yang ramah dan terstruktur, serta JetBrains Mono untuk angka Rupiah dan tanggal agar kolom vertikal sejajar rapi. Hierarki dari bobot (400, 500, 600, 700) dan warna Ink vs Pencil.
 
 ### Hierarchy
 - **Page title** (600, 1.5rem, tracking tight): judul halaman di desktop (`PageHeader`).

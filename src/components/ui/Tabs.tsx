@@ -1,13 +1,48 @@
 import { cn } from '../../lib/api';
 
-// Segmented control: filter / pilihan sedikit.
-export function Tabs<K extends string | number>({ items, value, onChange, label }: { items: readonly (readonly [K, string])[]; value: K; onChange: (k: K) => void; label?: string }) {
+// iOS-style tactile Segmented Control
+export function Tabs<K extends string | number>({
+  items,
+  value,
+  onChange,
+  label,
+  className,
+}: {
+  items: readonly (readonly [K, string])[];
+  value: K;
+  onChange: (k: K) => void;
+  label?: string;
+  className?: string;
+}) {
   return (
-    <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-md bg-soft p-1" role="tablist" aria-label={label}>
-      {items.map(([k, l]) => (
-        <button key={k} role="tab" aria-selected={value === k} onClick={() => onChange(k)}
-          className={cn('min-h-9 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold', value === k ? 'bg-surface text-tx shadow-card' : 'text-mut hover:text-tx')}>{l}</button>
-      ))}
+    <div
+      className={cn(
+        'inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-line/70 bg-soft p-1',
+        className
+      )}
+      role="tablist"
+      aria-label={label}
+    >
+      {items.map(([k, l]) => {
+        const active = value === k;
+        return (
+          <button
+            key={k}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(k)}
+            className={cn(
+              'min-h-9 whitespace-nowrap rounded-lg px-3 py-1 text-xs md:text-sm font-semibold transition-all select-none active:scale-95',
+              active
+                ? 'bg-surface text-tx shadow-card font-bold'
+                : 'text-mut hover:text-tx'
+            )}
+          >
+            {l}
+          </button>
+        );
+      })}
     </div>
   );
 }
