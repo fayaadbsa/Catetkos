@@ -227,7 +227,7 @@ function NewBooking({
                   <span className="font-sans text-tx">
                     {dm(it.check_in)} → {dm(it.check_out)}
                     {it.promo_name && (
-                      <span className="ml-1.5 text-xs font-semibold text-ok bg-ok/10 px-1.5 py-0.5 rounded">
+                      <span className="ml-1.5 text-xs font-semibold text-ok bg-ok/10 px-1.5 py-0.5 rounded-sm">
                         promo {it.promo_name}
                       </span>
                     )}
@@ -882,7 +882,7 @@ export default function Bookings() {
             {stay.parts.map((b) => (
               <li
                 key={b.id}
-                className="rounded-xl border border-line bg-surface p-4 shadow-xs"
+                className="rounded-xl border border-line bg-surface p-4 shadow-2xs"
               >
                 <div className="flex items-center justify-between gap-2 border-b border-line/60 pb-2">
                   <span className="font-mono font-bold text-tx">
@@ -891,7 +891,7 @@ export default function Bookings() {
                   <span className="font-mono font-bold text-tx">
                     {rp(b.price_total)}
                     {b.promo_id && (
-                      <span className="ml-1 text-xs font-semibold text-ok bg-ok/10 px-1.5 py-0.5 rounded">
+                      <span className="ml-1 text-xs font-semibold text-ok bg-ok/10 px-1.5 py-0.5 rounded-sm">
                         promo
                       </span>
                     )}

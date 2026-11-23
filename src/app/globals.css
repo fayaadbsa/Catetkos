@@ -1,0 +1,92 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --color-bg: rgb(var(--bg));
+  --color-surface: rgb(var(--surface));
+  --color-soft: rgb(var(--soft));
+  --color-line: rgb(var(--line));
+  --color-tx: rgb(var(--tx));
+  --color-mut: rgb(var(--mut));
+  --color-primary: rgb(var(--primary));
+  --color-primary-fg: rgb(var(--primary-fg));
+  --color-accent: rgb(var(--accent));
+  --color-brand: rgb(var(--brand));
+  --color-danger: rgb(var(--danger));
+  --color-warn: rgb(var(--warn));
+  --color-ok: rgb(var(--ok));
+
+  --shadow-card:
+    0 1px 2px 0 rgb(var(--shadow) / 0.05), 0 1px 3px 0 rgb(var(--shadow) / 0.03);
+  --shadow-card-hover: 0 4px 12px -2px rgb(var(--shadow) / 0.08);
+  --shadow-floating: 0 12px 32px -4px rgba(0, 0, 0, 0.15);
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-line, currentcolor);
+  }
+}
+
+:root {
+  --bg: 250 250 250;
+  --surface: 255 255 255;
+  --soft: 242 242 245;
+  --line: 228 228 231;
+  --tx: 24 24 27;
+  --mut: 113 113 122;
+  --primary: 24 24 27;
+  --primary-fg: 250 250 250;
+  --brand: 194 86 58;
+  --accent: 24 24 27;
+  --danger: 220 38 38;
+  --warn: 180 83 9;
+  --ok: 21 128 61;
+  --shadow: 24 24 27;
+  color-scheme: light;
+}
+.dark {
+  --bg: 10 10 12;
+  --surface: 20 20 23;
+  --soft: 35 35 40;
+  --line: 55 55 62;
+  --tx: 250 250 250;
+  --mut: 161 161 170;
+  --primary: 250 250 250;
+  --primary-fg: 24 24 27;
+  --brand: 232 120 92;
+  --accent: 250 250 250;
+  --danger: 248 113 113;
+  --warn: 250 204 21;
+  --ok: 74 222 128;
+  --shadow: 0 0 0;
+  color-scheme: dark;
+}
+/* Monokrom ala shadcn zinc + sentuhan modern iOS utility. Satu-satunya warna brand: --brand (#c2563a / terakota). */
+body { @apply bg-bg font-sans text-tx antialiased selection:bg-brand/20; }
+
+:focus-visible { outline: 2px solid rgb(var(--mut)); outline-offset: 2px; }
+
+/* scrollbar tipis, ikut tema */
+* { scrollbar-width: thin; scrollbar-color: rgb(var(--line)) transparent; }
+
+/* Utilitas tabular angka */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

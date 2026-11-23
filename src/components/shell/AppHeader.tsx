@@ -58,7 +58,7 @@ export function AppHeader({ title, sub }: { title: string; sub?: string }) {
         {/* Right Action & Status Group */}
         <div className="flex items-center gap-3">
           {/* Current Month Badge */}
-          <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-lg border border-line bg-surface text-xs font-semibold text-mut shadow-xs">
+          <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-lg border border-line bg-surface text-xs font-semibold text-mut shadow-2xs">
             <span>{currentMonthName}</span>
           </div>
 
@@ -74,7 +74,7 @@ export function AppHeader({ title, sub }: { title: string; sub?: string }) {
             variant="primary"
             size="sm"
             icon={<Plus size={14} />}
-            className="font-semibold shadow-xs"
+            className="font-semibold shadow-2xs"
           >
             Catat Transaksi
           </LinkButton>

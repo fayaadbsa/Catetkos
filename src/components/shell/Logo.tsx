@@ -15,7 +15,7 @@ export function Logo({
           width={size}
           height={size}
           alt="catetkos logo"
-          className="rounded-lg shadow-xs"
+          className="rounded-lg shadow-2xs"
         />
       </span>
       {word && (

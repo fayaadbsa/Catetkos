@@ -82,7 +82,7 @@ export default function KosPage() {
                     aria-pressed={k.id === active.id}
                     className={`flex min-h-12 w-full items-center justify-between rounded-xl border px-4 text-left text-sm font-semibold transition-all select-none active:scale-[0.98] ${
                       k.id === active.id
-                        ? 'border-brand/40 bg-brand/5 text-tx shadow-xs font-bold'
+                        ? 'border-brand/40 bg-brand/5 text-tx shadow-2xs font-bold'
                         : 'border-line bg-surface hover:bg-soft text-mut hover:text-tx'
                     }`}
                   >

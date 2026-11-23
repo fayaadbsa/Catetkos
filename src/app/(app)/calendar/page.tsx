@@ -357,7 +357,7 @@ export default function Calendar() {
                                   title={`${b.guest_name}: ${dm(b.check_in)} → ${dm(
                                     b.check_out
                                   )}`}
-                                  className={`absolute inset-y-1 overflow-hidden whitespace-nowrap px-2 text-left text-[11px] font-bold text-white shadow-xs transition-transform active:scale-95 ${
+                                  className={`absolute inset-y-1 overflow-hidden whitespace-nowrap px-2 text-left text-[11px] font-bold text-white shadow-2xs transition-transform active:scale-95 ${
                                     capL ? 'rounded-l-md' : ''
                                   } ${capR ? 'rounded-r-md' : ''}`}
                                   style={{
@@ -366,7 +366,7 @@ export default function Calendar() {
                                     background: color(b.guest_id),
                                   }}
                                 >
-                                  <span className="truncate block drop-shadow-sm">
+                                  <span className="truncate block drop-shadow-xs">
                                     {b.guest_name}
                                   </span>
                                 </button>

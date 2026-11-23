@@ -29,13 +29,13 @@ export function FilterButton({
         className={cn(
           'relative inline-flex size-10 md:size-9 shrink-0 items-center justify-center rounded-lg border transition-all active:scale-95',
           filters.length
-            ? 'border-tx bg-soft text-tx shadow-sm font-semibold'
+            ? 'border-tx bg-soft text-tx shadow-xs font-semibold'
             : 'border-line bg-surface text-mut hover:border-tx/40 hover:text-tx'
         )}
       >
         <FunnelIcon size={16} aria-hidden />
         {filters.length > 0 && (
-          <span className="absolute -right-1 -top-1 grid size-4 place-items-center rounded-full bg-brand text-[10px] font-bold text-white shadow-sm">
+          <span className="absolute -right-1 -top-1 grid size-4 place-items-center rounded-full bg-brand text-[10px] font-bold text-white shadow-xs">
             {filters.length}
           </span>
         )}

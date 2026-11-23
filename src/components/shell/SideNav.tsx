@@ -64,7 +64,7 @@ export function UserFooter({ onNavigate }: { onNavigate?: () => void }) {
         className="flex min-h-11 md:min-h-9 min-w-0 flex-1 items-center gap-2.5 rounded-lg p-1.5 text-left transition-colors hover:bg-soft"
         aria-label="Buka pengaturan akun"
       >
-        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-xs font-bold uppercase text-primary-fg shadow-xs">
+        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-xs font-bold uppercase text-primary-fg shadow-2xs">
           {(me?.username || '?')[0]}
         </span>
         <span className="min-w-0">

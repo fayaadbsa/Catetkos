@@ -25,11 +25,11 @@ export const buttonClass = (
     size === 'lg' && 'min-h-12 px-4 py-2.5 text-base md:min-h-10 md:px-3.5 md:py-2 md:text-sm',
     size === 'icon' && 'size-11 p-0 md:size-9',
     // Variants
-    variant === 'primary' && 'bg-primary text-primary-fg shadow-sm hover:bg-primary/90 active:bg-primary',
-    variant === 'brand' && 'bg-brand text-white shadow-sm hover:bg-brand/90 active:bg-brand',
+    variant === 'primary' && 'bg-primary text-primary-fg shadow-xs hover:bg-primary/90 active:bg-primary',
+    variant === 'brand' && 'bg-brand text-white shadow-xs hover:bg-brand/90 active:bg-brand',
     variant === 'outline' && 'border border-line bg-surface text-tx shadow-card hover:bg-soft hover:text-tx active:bg-soft',
     variant === 'ghost' && 'text-tx hover:bg-soft hover:text-tx active:bg-soft',
-    variant === 'danger' && 'bg-danger text-white shadow-sm hover:opacity-90 active:opacity-100',
+    variant === 'danger' && 'bg-danger text-white shadow-xs hover:opacity-90 active:opacity-100',
     className
   );
 

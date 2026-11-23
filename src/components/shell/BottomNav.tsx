@@ -13,7 +13,7 @@ export function BottomNav() {
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden select-none">
       <nav
         aria-label="Menu cepat"
-        className="pointer-events-auto flex w-full max-w-[27rem] items-center justify-around rounded-full border border-line/80 bg-surface/90 p-1.5 shadow-floating backdrop-blur-2xl [-webkit-backdrop-filter:blur(24px)_saturate(180%)]"
+        className="pointer-events-auto flex w-full max-w-108 items-center justify-around rounded-full border border-line/80 bg-surface/90 p-1.5 shadow-floating backdrop-blur-2xl [-webkit-backdrop-filter:blur(24px)_saturate(180%)]"
       >
         {items.map(({ path, label, icon: Icon }) => (
           <NavLink
