@@ -27,10 +27,10 @@ Butuh Node 22.5 atau lebih baru.
 
 ```bash
 npm install
-ADMIN_USERNAME=admin ADMIN_PASSWORD='ganti-ini' npm run seed:admin
-npm run seed        # opsional: data contoh dari seed/example/seed.json
-npm start           # API di http://localhost:3005
-npm run dev         # di terminal lain: Vite, proxy /api ke :3005
+npm run seed:admin   # input username & password via prompt CLI
+npm run seed         # opsional: data contoh dari seed/example/seed.json
+npm start            # API di http://localhost:3005 (atau bun start)
+npm run dev          # di terminal lain: Vite dev server, proxy /api ke :3005
 ```
 
 Database tersimpan di `data/catetkos.db` (dibuat otomatis, tidak ikut git).
@@ -56,7 +56,7 @@ Database tersimpan di `data/catetkos.db` (dibuat otomatis, tidak ikut git).
 | `npm test` | Test node (`test/*.test.js`) |
 | `npm run test:e2e` | Playwright, pakai DB sementara di `/tmp` |
 | `npm run seed` | Isi data contoh (menghapus data bisnis kos target, akun tetap) |
-| `npm run seed:admin` | Bikin akun admin, aman diulang |
+| `npm run seed:admin` | Bikin akun admin via prompt CLI (atau lewat env), aman diulang |
 | `npm run seed:test` | Akun uji multi-kos |
 | `npm run set:password` | Ganti password lewat prompt tersembunyi |
 
@@ -81,9 +81,10 @@ Container bind ke `127.0.0.1:3005`; taruh reverse proxy dengan HTTPS di depannya
 Bikin akun atau ganti password di server:
 
 ```bash
-docker exec -e ADMIN_USERNAME=admin -e ADMIN_PASSWORD='ganti-ini' catetkos-prod node scripts/seed-admin.js
+docker exec -it catetkos-prod node scripts/seed-admin.js
 docker exec -it catetkos-prod node scripts/set-password.js <username>
 ```
+*(Bisa juga non-interaktif dengan mengoper `-e ADMIN_USERNAME=... -e ADMIN_PASSWORD=...`)*
 
 ## Dokumen
 

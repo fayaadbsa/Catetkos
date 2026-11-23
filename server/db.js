@@ -1,10 +1,18 @@
-import { DatabaseSync } from 'node:sqlite';
-import { mkdirSync, copyFileSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
+
+let DatabaseClass;
+if (typeof process.versions.bun !== 'undefined') {
+  const { Database } = await import('bun:sqlite');
+  DatabaseClass = Database;
+} else {
+  const { DatabaseSync } = await import('node:sqlite');
+  DatabaseClass = DatabaseSync;
+}
 
 const path = process.env.DB_PATH || 'data/catetkos.db';
 if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
-export const db = new DatabaseSync(path);
+export const db = new DatabaseClass(path);
 db.exec('PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;');
 
 // Migrasi berurutan, versi di PRAGMA user_version. Tambah migrasi baru di akhir array, jangan edit yang lama.
