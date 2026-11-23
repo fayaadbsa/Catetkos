@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-23T00:00:00Z",
+  "title": "Design System: catetkos",
+  "extensions": {
+    "colorMeta": {
+      "graphite": { "role": "primary", "displayName": "Graphite", "canonical": "rgb(24 24 27)", "tonalRamp": ["#09090b", "#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#e4e4e7"] },
+      "terracotta": { "role": "secondary", "displayName": "Terracotta Stamp", "canonical": "rgb(194 86 58)", "tonalRamp": ["#3d1a11", "#622a1c", "#8a3b27", "#c2563a", "#e8785c", "#f0a08a", "#f6c7b9", "#fbe6df"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "rgb(9 9 11)" },
+      "pencil": { "role": "neutral", "displayName": "Pencil", "canonical": "rgb(113 113 122)" },
+      "paper": { "role": "neutral", "displayName": "Paper", "canonical": "rgb(250 250 250)" },
+      "sheet": { "role": "neutral", "displayName": "Sheet", "canonical": "rgb(255 255 255)" },
+      "wash": { "role": "neutral", "displayName": "Wash", "canonical": "rgb(240 240 243)" },
+      "ruling": { "role": "neutral", "displayName": "Ruling", "canonical": "rgb(220 220 225)" }
+    },
+    "typographyMeta": {
+      "page-title": { "displayName": "Page title", "purpose": "Judul halaman desktop." },
+      "app-bar-title": { "displayName": "App bar title", "purpose": "Judul header mobile." },
+      "figure": { "displayName": "Figure", "purpose": "Nilai Rupiah di stat dashboard, tidak pernah wrap." },
+      "overline": { "displayName": "Overline", "purpose": "Header kolom tabel dan legend filter, uppercase." }
+    },
+    "shadows": [
+      { "name": "card-hairline", "value": "0 1px 2px 0 rgb(0 0 0 / .06)", "purpose": "Kartu, tab terpilih, sheet." },
+      { "name": "floating-island", "value": "0 12px 32px -4px rgba(0,0,0,0.18)", "purpose": "Hanya tab bar mobile, bersama backdrop blur 24px." }
+    ],
+    "motion": [
+      { "name": "press", "value": "transform: scale(0.97)", "purpose": "Umpan balik tekan tombol; tab bar memakai scale(0.9)." }
+    ],
+    "breakpoints": [
+      { "name": "md", "value": "768px" }
+    ]
+  },
+  "components": [
+    { "name": "Primary Button", "kind": "button", "refersTo": "button-primary", "description": "Aksi utama halaman atau sheet.", "html": "<button class=\"ds-btn-primary\">Simpan</button>", "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 12px;border:0;border-radius:6px;background:#18181b;color:#fafafa;font:500 14px 'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:background .15s,transform .15s}.ds-btn-primary:hover{background:rgb(24 24 27/.9)}.ds-btn-primary:active{transform:scale(.97)}.ds-btn-primary:focus-visible{outline:2px solid #71717a;outline-offset:2px}" },
+    { "name": "Outline Button", "kind": "button", "refersTo": "button-outline", "description": "Aksi sekunder.", "html": "<button class=\"ds-btn-outline\">Batal</button>", "css": ".ds-btn-outline{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 12px;border:1px solid #dcdce1;border-radius:6px;background:#fff;color:#09090b;font:500 14px 'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:background .15s,transform .15s}.ds-btn-outline:hover{background:#f0f0f3}.ds-btn-outline:active{transform:scale(.97)}.ds-btn-outline:focus-visible{outline:2px solid #71717a;outline-offset:2px}" },
+    { "name": "Input", "kind": "input", "refersTo": "input", "description": "Field teks; 16px di mobile.", "html": "<input class=\"ds-input\" placeholder=\"Nama tamu\" />", "css": ".ds-input{min-height:44px;width:100%;padding:8px 12px;border:1px solid #dcdce1;border-radius:6px;background:#fff;color:#09090b;font:400 16px 'Plus Jakarta Sans',system-ui,sans-serif;outline:none}.ds-input::placeholder{color:#71717a}.ds-input:focus{border-color:#71717a;box-shadow:0 0 0 2px rgb(113 113 122/.2)}" },
+    { "name": "Stat Card", "kind": "card", "refersTo": "card", "description": "Angka ringkasan dashboard.", "html": "<div class=\"ds-stat\"><div class=\"ds-stat-l\">Pemasukan</div><div class=\"ds-stat-v\">Rp 12.450.000</div><div class=\"ds-stat-h\">Nov 2026</div></div>", "css": ".ds-stat{padding:16px;border:1px solid #dcdce1;border-radius:8px;background:#fff;box-shadow:0 1px 2px 0 rgb(0 0 0/.06);font-family:'Plus Jakarta Sans',system-ui,sans-serif}.ds-stat-l{font-size:14px;font-weight:600;color:#71717a}.ds-stat-v{margin-top:4px;font-size:20px;font-weight:600;color:#09090b;white-space:nowrap}.ds-stat-h{margin-top:4px;font-size:14px;color:#71717a}" },
+    { "name": "Filter Chip", "kind": "chip", "refersTo": "chip-selected", "description": "Pilihan di filter sheet.", "html": "<button class=\"ds-chip ds-chip-on\" aria-pressed=\"true\">Bulan ini</button><button class=\"ds-chip\" aria-pressed=\"false\">Tahun ini</button>", "css": ".ds-chip{min-height:36px;padding:0 12px;margin-right:6px;border:1px solid #dcdce1;border-radius:9999px;background:#fff;color:#71717a;font:600 12px 'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer}.ds-chip:hover{color:#09090b}.ds-chip-on{border-color:#18181b;background:#18181b;color:#fafafa}.ds-chip-on:hover{color:#fafafa}.ds-chip:focus-visible{outline:2px solid #71717a;outline-offset:2px}" },
+    { "name": "Status Badge", "kind": "chip", "description": "Status dengan titik warna + label teks.", "html": "<span class=\"ds-badge\"><span class=\"ds-dot\"></span>Lunas</span>", "css": ".ds-badge{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:9999px;background:#16a34a26;box-shadow:inset 0 0 0 1px #16a34a66;color:#09090b;font:600 12px 'Plus Jakarta Sans',system-ui,sans-serif}.ds-dot{width:6px;height:6px;border-radius:9999px;background:#16a34a}" },
+    { "name": "Tab Bar", "kind": "nav", "description": "Pulau navigasi melayang mobile.", "html": "<nav class=\"ds-tabbar\"><a class=\"ds-tab ds-tab-on\">Dashboard</a><a class=\"ds-tab\">Kalender</a><a class=\"ds-tab\">Booking</a><a class=\"ds-tab\">Lainnya</a></nav>", "css": ".ds-tabbar{display:flex;gap:2px;max-width:26rem;padding:6px;border:1px solid #dcdce1;border-radius:9999px;background:rgb(255 255 255/.9);box-shadow:0 12px 32px -4px rgba(0,0,0,.18);backdrop-filter:blur(24px) saturate(180%)}.ds-tab{flex:1;display:flex;align-items:center;justify-content:center;min-height:44px;border-radius:9999px;color:#71717a;font:500 10px 'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:transform .15s}.ds-tab:active{transform:scale(.9)}.ds-tab-on{background:#f0f0f3;color:#09090b;font-weight:600}" }
+  ],
+  "narrative": {
+    "northStar": "Buku Kas Rapi",
+    "overview": "catetkos terasa seperti buku kas yang dijaga baik: kertas bersih, garis tipis, tulisan tinta hitam, dan angka yang bisa dibaca sekilas. Sistemnya monokrom zinc ala shadcn. Hierarki dibangun dari bobot huruf, abu-abu, dan garis, bukan dari warna. Satu-satunya warna brand adalah terakota, dipakai seperti cap stempel: di logo, wordmark \"kos\", dan seri utama chart.",
+    "keyCharacteristics": [
+      "Monokrom tinta-di-kertas; terakota hanya sebagai tanda tangan.",
+      "Angka (Rupiah, tanggal, jumlah malam) adalah konten utama, selalu tegas dan tidak terpotong.",
+      "Garis 1px dan bayangan nyaris tak terlihat; kedalaman dari layering tonal.",
+      "Pola native mobile: bottom sheet, segmented control, target sentuh 44px, safe-area.",
+      "Warna semantik (ok / warn / danger) hanya untuk status, selalu didampingi label teks."
+    ],
+    "rules": [
+      { "name": "The One Stamp Rule", "body": "Terakota adalah satu-satunya warna brand. Pakai di logo, wordmark, dan seri data utama. Jangan untuk tombol, link, atau latar.", "section": "colors" },
+      { "name": "The Token-Only Rule", "body": "Komponen hanya memakai token semantik (`bg-surface`, `text-mut`, `border-line`). Ganti tema = ganti variabel, bukan komponen. Hex mentah hanya boleh di palet chart/kalender di `src/lib/theme.ts` dan `src/pages/Calendar.tsx`.", "section": "colors" },
+      { "name": "The Status Has Words Rule", "body": "Warna status selalu didampingi teks (\"Lunas\", \"Belum lunas\"). Warna saja tidak pernah membawa makna.", "section": "colors" },
+      { "name": "The Weight Not Size Rule", "body": "Naikkan bobot atau ganti Pencil ke Ink sebelum menaikkan ukuran. Skala ukuran sengaja sempit.", "section": "typography" },
+      { "name": "The Only Islands Float Rule", "body": "Hanya navigasi melayang (tab bar) dan overlay (sheet) yang terangkat. Kartu dan tabel tetap di permukaan kertas.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do pakai token semantik (`bg-surface`, `text-mut`, `border-line`, `bg-soft`) untuk setiap permukaan baru, supaya light/dark ikut otomatis.",
+      "Do jaga target sentuh 44px di mobile (`min-h-11`) dan turunkan ke 36px di desktop (`md:min-h-9`).",
+      "Do pakai bottom sheet untuk filter dan form di mobile, bukan halaman baru atau dropdown.",
+      "Do tampilkan Rupiah dengan `whitespace-nowrap` dan bobot 600 di stat.",
+      "Do beri label teks pada setiap status berwarna."
+    ],
+    "donts": [
+      "Don't pakai terakota untuk tombol, link, atau latar besar (The One Stamp Rule).",
+      "Don't tambah hex mentah di komponen; satu-satunya pengecualian adalah palet chart dan kalender.",
+      "Don't angkat kartu dengan bayangan besar; yang melayang hanya tab bar dan sheet.",
+      "Don't pakai input dengan teks di bawah 16px di mobile (memicu zoom iOS).",
+      "Don't pakai bobot font yang tidak dimuat di `index.html`."
+    ]
+  }
+}
