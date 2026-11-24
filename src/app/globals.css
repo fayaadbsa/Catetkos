@@ -46,38 +46,38 @@
 :root {
   --bg: 250 250 250;
   --surface: 255 255 255;
-  --soft: 242 242 245;
-  --line: 228 228 231;
+  --soft: 243 244 246;
+  --line: 236 238 240;
   --tx: 24 24 27;
-  --mut: 113 113 122;
-  --primary: 24 24 27;
-  --primary-fg: 250 250 250;
+  --mut: 107 114 128;
+  --primary: 6 59 46;
+  --primary-fg: 255 255 255;
   --brand: 194 86 58;
-  --accent: 24 24 27;
-  --danger: 220 38 38;
+  --accent: 6 59 46;
+  --danger: 229 72 77;
   --warn: 180 83 9;
   --ok: 21 128 61;
   --shadow: 24 24 27;
   color-scheme: light;
 }
 .dark {
-  --bg: 10 10 12;
-  --surface: 20 20 23;
-  --soft: 35 35 40;
-  --line: 55 55 62;
-  --tx: 250 250 250;
-  --mut: 161 161 170;
-  --primary: 250 250 250;
-  --primary-fg: 24 24 27;
+  --bg: 9 12 11;
+  --surface: 18 24 22;
+  --soft: 30 38 35;
+  --line: 45 56 52;
+  --tx: 244 247 245;
+  --mut: 156 168 162;
+  --primary: 74 222 128;
+  --primary-fg: 5 36 28;
   --brand: 232 120 92;
-  --accent: 250 250 250;
+  --accent: 74 222 128;
   --danger: 248 113 113;
   --warn: 250 204 21;
   --ok: 74 222 128;
   --shadow: 0 0 0;
   color-scheme: dark;
 }
-/* Monokrom ala shadcn zinc + sentuhan modern iOS utility. Satu-satunya warna brand: --brand (#c2563a / terakota). */
+/* Buku Kas Modern: primary hijau tua, brand terakota untuk pengeluaran/tagih, hitam hanya state aktif. */
 body {
   @apply bg-bg font-sans text-tx antialiased selection:bg-brand/20;
 }

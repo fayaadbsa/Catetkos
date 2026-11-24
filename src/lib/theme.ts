@@ -7,10 +7,10 @@ export const SEM = {
   brand: '#c2563a',
 };
 export const C = {
-  income: SEM.brand, // income = warna utama, expense = abu. Beda terang-gelap, aman buta warna
-  expense: '#71717a',
+  income: SEM.ok, // income hijau, expense terakota
+  expense: SEM.brand,
   capital: '#a1a1aa',
-  rooms: [SEM.brand, '#71717a', '#a1a1aa', '#52525b', '#d4d4d8', '#3f3f46'],
+  rooms: [SEM.ok, SEM.brand, '#063b2e', '#71717a', '#86efac', '#fdba74'],
   axis: SEM.mut,
   grid: '#71717a33',
   tip: {

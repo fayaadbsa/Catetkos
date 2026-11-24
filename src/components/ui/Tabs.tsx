@@ -19,7 +19,7 @@ export function Tabs<K extends string | number>({
   return (
     <div
       className={cn(
-        'inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-line/70 bg-soft p-1',
+        'inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-xl bg-soft p-1',
         className,
       )}
       role="tablist"
@@ -36,7 +36,7 @@ export function Tabs<K extends string | number>({
             onClick={() => onChange(k)}
             className={cn(
               'min-h-9 whitespace-nowrap rounded-lg px-3 py-1 text-xs md:text-sm font-semibold transition-all select-none active:scale-95',
-              active ? 'bg-surface text-tx shadow-card font-bold' : 'text-mut hover:text-tx',
+              active ? 'bg-surface text-tx shadow-sm font-bold' : 'text-mut hover:text-tx',
             )}
           >
             {l}

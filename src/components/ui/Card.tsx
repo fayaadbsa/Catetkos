@@ -6,7 +6,7 @@ import { cn } from '@/lib/api';
 export const Card = ({ className, ...p }: HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      'rounded-xl border border-line bg-surface p-4 shadow-card transition-colors',
+      'rounded-2xl border border-line bg-surface p-4 shadow-xs transition-colors',
       className,
     )}
     {...p}
@@ -24,11 +24,11 @@ export interface StatProps {
 export const Stat = ({ label, value, hint, icon, trend }: StatProps) => (
   <Card className="flex flex-col justify-between p-3.5 md:p-4">
     <div className="flex items-center justify-between gap-2">
-      <span className="text-[11px] md:text-xs font-semibold uppercase tracking-wider text-mut truncate">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-mut truncate">
         {label}
       </span>
       {icon && (
-        <span className="grid size-7 place-items-center rounded-lg bg-soft text-mut shrink-0">
+        <span className="grid size-9 place-items-center rounded-xl bg-soft text-mut shrink-0">
           {icon}
         </span>
       )}
@@ -84,28 +84,28 @@ export const Badge = ({ color, variant, children, className }: BadgeProps) => {
   let bg = 'bg-soft';
   let text = 'text-mut';
   let dotBg = 'bg-mut';
-  let border = 'border-line';
+  let border = 'border-transparent';
 
   if (variant === 'ok') {
-    bg = 'bg-ok/10';
+    bg = 'bg-ok/12';
     text = 'text-ok';
     dotBg = 'bg-ok';
-    border = 'border-ok/30';
+    border = 'border-transparent';
   } else if (variant === 'warn') {
     bg = 'bg-warn/10';
     text = 'text-warn';
     dotBg = 'bg-warn';
-    border = 'border-warn/30';
+    border = 'border-transparent';
   } else if (variant === 'danger') {
     bg = 'bg-danger/10';
     text = 'text-danger';
     dotBg = 'bg-danger';
-    border = 'border-danger/30';
+    border = 'border-transparent';
   } else if (variant === 'brand') {
     bg = 'bg-brand/10';
     text = 'text-brand';
     dotBg = 'bg-brand';
-    border = 'border-brand/30';
+    border = 'border-transparent';
   }
 
   if (color) {

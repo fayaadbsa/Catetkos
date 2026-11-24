@@ -23,18 +23,18 @@ export const buttonClass = (
     'inline-flex items-center justify-center gap-1.5 font-medium transition-all select-none disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97]',
     'rounded-lg', // modern tactile 8px squircle
     // Sizing
-    size === 'default' && 'min-h-11 px-3.5 py-2 text-sm md:min-h-9 md:px-3 md:py-1.5',
+    size === 'default' && 'min-h-11 px-4 py-2 text-sm font-semibold md:min-h-10 md:px-3.5 md:py-2',
     size === 'sm' && 'min-h-9 px-2.5 py-1 text-xs md:min-h-8 md:px-2 md:py-1',
     size === 'lg' && 'min-h-12 px-4 py-2.5 text-base md:min-h-10 md:px-3.5 md:py-2 md:text-sm',
     size === 'icon' && 'size-11 p-0 md:size-9',
     // Variants
     variant === 'primary' &&
-      'bg-primary text-primary-fg shadow-xs hover:bg-primary/90 active:bg-primary',
+      'bg-primary text-primary-fg hover:bg-primary/90 active:bg-primary',
     variant === 'brand' && 'bg-brand text-white shadow-xs hover:bg-brand/90 active:bg-brand',
     variant === 'outline' &&
-      'border border-line bg-surface text-tx shadow-card hover:bg-soft hover:text-tx active:bg-soft',
+      'border border-line bg-surface text-tx hover:bg-soft hover:text-tx active:bg-soft',
     variant === 'ghost' && 'text-tx hover:bg-soft hover:text-tx active:bg-soft',
-    variant === 'danger' && 'bg-danger text-white shadow-xs hover:opacity-90 active:opacity-100',
+    variant === 'danger' && 'bg-brand text-white hover:opacity-90 active:opacity-100',
     className,
   );
 

@@ -47,13 +47,13 @@ export function DataTable<T>({
       {/* Desktop / Full Table View */}
       <div
         className={cn(
-          'rounded-xl border border-line bg-surface shadow-card overflow-hidden',
+          'rounded-2xl border border-line bg-surface shadow-xs overflow-hidden',
           !table && 'hidden md:block',
         )}
       >
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
-            <thead className="border-b border-line bg-soft/50 text-[11px] font-bold uppercase tracking-wider text-mut">
+            <thead className="border-b border-line bg-soft text-[11px] font-semibold uppercase tracking-[0.06em] text-mut">
               <tr>
                 {columns.map((c) => (
                   <th
@@ -71,14 +71,14 @@ export function DataTable<T>({
                 {actions && <th className="px-4 py-3 text-right">Aksi</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-line/60">
+            <tbody className="divide-y divide-line/70">
               {rows?.map((r) => (
                 <tr key={rowKey(r)} className="transition-colors hover:bg-soft/40 group">
                   {columns.map((c) => (
                     <td
                       key={c.key}
                       className={cn(
-                        'whitespace-nowrap px-4 py-3 text-tx',
+                        'whitespace-nowrap px-4 py-3.5 text-tx',
                         c.align === 'right' && 'text-right font-mono tabular-nums',
                         c.align === 'center' && 'text-center',
                         c.className,

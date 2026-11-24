@@ -5,7 +5,7 @@ import { cn } from '@/lib/api';
 
 // Target sentuh 44px di mobile (cegah zoom iOS), 36px di desktop
 const field =
-  'min-h-11 w-full rounded-lg border border-line bg-surface px-3.5 py-2 text-base text-tx outline-hidden transition-all placeholder:text-mut/60 focus:border-tx focus:ring-1 focus:ring-tx/20 md:min-h-9 md:text-sm';
+  'min-h-11 w-full rounded-lg border border-transparent bg-soft px-3.5 py-2 text-base text-tx outline-hidden transition-all placeholder:text-mut/70 focus:border-primary focus:bg-surface focus:ring-2 focus:ring-primary/15 md:min-h-10 md:text-sm';
 
 export const Input = ({ className, ...p }: InputHTMLAttributes<HTMLInputElement>) => (
   <input className={cn(field, className)} {...p} />

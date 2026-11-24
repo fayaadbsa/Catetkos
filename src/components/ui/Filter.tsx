@@ -31,7 +31,7 @@ export function FilterButton({
         className={cn(
           'relative inline-flex size-10 md:size-9 shrink-0 items-center justify-center rounded-lg border transition-all active:scale-95',
           filters.length
-            ? 'border-tx bg-soft text-tx shadow-xs font-semibold'
+            ? 'border-tx bg-soft text-tx font-semibold'
             : 'border-line bg-surface text-mut hover:border-tx/40 hover:text-tx',
         )}
       >
@@ -48,7 +48,7 @@ export function FilterButton({
           type="button"
           onClick={f.onRemove}
           aria-label={`Hapus filter ${f.label}`}
-          className="inline-flex min-h-8 md:min-h-7 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-2.5 text-xs font-semibold text-tx shadow-card hover:border-danger hover:text-danger transition-colors active:scale-95"
+          className="inline-flex min-h-8 md:min-h-7 items-center gap-1.5 whitespace-nowrap rounded-full bg-soft px-2.5 text-xs font-semibold text-tx hover:bg-danger/10 hover:text-danger transition-colors active:scale-95"
         >
           <span>{f.label}</span>
           <X size={12} className="text-mut hover:text-danger" aria-hidden />
@@ -81,8 +81,8 @@ export const FilterChip = ({
     className={cn(
       'min-h-9 md:min-h-8 rounded-full px-3 text-xs font-semibold transition-all select-none active:scale-95',
       selected
-        ? 'bg-primary text-primary-fg shadow-card'
-        : 'border border-line bg-surface text-mut hover:border-line hover:text-tx',
+        ? 'bg-tx text-surface'
+        : 'bg-soft text-mut hover:text-tx',
     )}
   >
     {children}
