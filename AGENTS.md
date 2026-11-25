@@ -10,55 +10,45 @@ Panduan untuk agent (dan manusia) yang mengerjakan repo ini.
 
 ## Stack
 
-- Next.js 16 (App Router), React 19, TypeScript, Tailwind 4, Recharts, lucide-react.
-- Data: SQLite lewat Prisma 7 (adapter libsql). Query bisnis lewat `$queryRawUnsafe` di `src/lib/resources.ts` dan `dashboard.ts`.
-- Auth: JWT (`jose`) di cookie httpOnly `session`. Kos aktif di cookie `kos`.
-- Runtime dan package manager: Bun. Test: `node --test` lewat `tsx`, Playwright e2e (profil iPhone 13).
-- Deploy: Docker standalone di VPS, `./deploy.sh` (manual, tanpa CI).
+- Backend `backend/`: Go (net/http, pgx), Postgres saja. Migrasi SQL tertanam di `backend/migrations`, jalan otomatis saat start. Tanpa ORM, SQL mentah.
+- Frontend `frontend/`: Vite, React 19, TypeScript, Tailwind 4, react-router, Recharts, lucide-react.
+- Auth: JWT HS256 di cookie httpOnly `session`. Kos aktif di cookie `kos`. Password scrypt.
+- Test: `go test` (DB Postgres sementara), Playwright e2e (iPhone 13) lawan api Go + build Vite.
+- Deploy: docker compose (`api` + `web` nginx) di VPS, `./deploy.sh` (manual, tanpa CI). Postgres di host.
 
 ## Peta kode
 
 | Path | Isi |
 |---|---|
-| `src/app/(app)/` | Halaman terautentikasi, satu `page.tsx` per rute. `layout.tsx` = auth gate + `AppShell` |
-| `src/app/login/` | Halaman login |
-| `src/app/api/` | Route handler: `auth`, `kos`, `dashboard`, `quote`, `bookings`, dan CRUD generik `[resource]/[id]` |
-| `src/app/manifest.ts` | Manifest PWA |
-| `src/proxy.ts` | Gerbang kasar: tanpa JWT valid, halaman ke `/login`, `/api` 401 |
-| `src/components/ui/` | Primitif UI (Button, Card, Form, Modal, DataTable, Filter, Tabs, Toaster) |
-| `src/components/shell/` | Sidebar, header mobile, tab bar, `nav-items.ts` (data) + `nav-icons.ts` (ikon) |
-| `src/components/Crud.tsx` | CRUD generik yang dipakai hampir semua entity |
-| `src/lib/db.ts` | Singleton PrismaClient |
-| `src/lib/resources.ts` | Definisi entity, validasi, booking, quote |
-| `src/lib/membership.ts` | Kos, anggota, `resolveKos` |
-| `src/lib/session.ts`, `auth.ts`, `password.ts` | JWT + cookie, `getCurrentUser`/`requireUser`, scrypt |
-| `src/lib/server-api.ts` | Pembungkus route handler, `withKos`, rate limit login |
-| `src/lib/api.ts` | Client fetch, `rp`, `cn`, toast |
-| `prisma/` | `schema.prisma` + migrasi |
-| `scripts/` | Seed dan utilitas akun (jalan lewat `tsx` atau `bun`) |
-| `tests/`, `e2e/` | Test node dan Playwright |
+| `backend/main.go` | Router `/api`, cookie, rate limit login, entry CLI |
+| `backend/resources.go` | Definisi entity, validasi, booking, quote, CRUD generik |
+| `backend/dashboard.go`, `auth.go`, `cli.go` | Dashboard, JWT+scrypt+membership, skrip admin/seed |
+| `backend/db.go`, `util.go`, `migrations/` | Pool pgx + migrator, helper, skema |
+| `backend/app_test.go` | Suite test (logika + HTTP) |
+| `frontend/src/pages/` | Satu file per halaman, rute di `App.tsx` |
+| `frontend/src/components/ui/`, `shell/` | Primitif UI, sidebar, header, tab bar, `nav-items.ts` |
+| `frontend/src/components/Crud.tsx` | CRUD generik |
+| `frontend/src/lib/` | `api.ts` (fetch), `me.tsx` (sesi), `kos.tsx`, tema |
+| `frontend/e2e/`, `scripts/e2e-api.sh` | Playwright + backend e2e |
 
 ## Perintah
 
 ```bash
-bun run dev          # http://localhost:3005
-bun run typecheck
-bun run lint
-bun run test
-bun run build && bun run test:e2e
+cd backend && go vet ./... && go test ./...
+cd frontend && npm run lint && npm run build && npm run test:e2e
 ```
 
-Sebelum bilang selesai: `typecheck`, `lint`, dan `test` harus lolos. Perubahan UI atau alur: jalankan juga e2e.
+Sebelum bilang selesai: vet, test, lint, dan build harus lolos. Perubahan UI atau alur: jalankan juga e2e.
 
 ## Aturan kode
 
-- **Navigasi satu sumber.** Halaman baru: buat `src/app/(app)/<path>/page.tsx`, lalu daftarkan di `nav-items.ts` (path, label, nama ikon) dan `nav-icons.ts`. Sidebar dan halaman "Lainnya" ikut dari situ.
-- **Entity baru pakai `Crud`.** Tambah model di `schema.prisma`, resource di `src/lib/resources.ts`, dan satu `page.tsx` yang memakai `Crud`. Jangan bikin halaman CRUD dari nol.
-- **Migrasi hanya ditambah.** Perubahan skema = migrasi Prisma baru (`prisma migrate dev`). Jangan edit migrasi lama. CHECK constraint ditulis manual di SQL migrasi. DB produksi tidak pernah di-reset.
-- **Semua data bisnis ber-`kos_id`.** Setiap query dan endpoint wajib dibatasi ke kos aktif. Handler data memakai `withKos()`: cookie `kos` hanya preferensi, membership dicek ke DB di setiap request. Jangan pernah percaya `kos_id` dari client.
+- **Navigasi satu sumber.** Halaman baru: buat `frontend/src/pages/<path>.tsx`, daftarkan di `App.tsx`, `nav-items.ts` (path, label, nama ikon) dan `nav-icons.ts`. Sidebar dan halaman "Lainnya" ikut dari situ.
+- **Entity baru pakai `Crud`.** Tambah tabel di migrasi baru, resource di `backend/resources.go`, dan satu halaman yang memakai `Crud`. Jangan bikin halaman CRUD dari nol.
+- **Migrasi hanya ditambah.** Perubahan skema = file baru `backend/migrations/NNN_nama.sql`. Jangan edit migrasi lama. DB produksi tidak pernah di-reset.
+- **Semua data bisnis ber-`kos_id`.** Setiap query dan endpoint wajib dibatasi ke kos aktif. Handler data memakai `withKos`: cookie `kos` hanya preferensi, membership dicek ke DB di setiap request. Jangan pernah percaya `kos_id` dari client.
 - **Validasi final di server.** Client boleh membantu, server yang memutuskan. Uang disimpan sebagai integer Rupiah.
 - **`/api` tidak pernah di-cache** oleh service worker. `sw.js` disajikan dengan header no-cache.
-- **Komponen interaktif** pakai `'use client'`. Akses DB dan session hanya di server (`server-only`).
+- **Frontend tidak menyentuh DB.** Semua lewat `/api`.
 - **UI pakai token semantik** (`bg-surface`, `text-mut`, `border-line`), bukan hex mentah. Lihat `DESIGN.md`.
 - **Mobile dulu.** Target sentuh 44px (`min-h-11`), input 16px di mobile, hormati safe-area.
 - **Teks UI bahasa Indonesia santai**, singkat. Status berwarna selalu punya label teks.
@@ -91,7 +81,7 @@ docs(readme): add deploy steps
 
 Commit lama memakai kalimat bebas bahasa Indonesia; itu tidak perlu ditulis ulang, cukup ikuti format ini ke depan.
 
-Commit atau push hanya kalau diminta. Kerja di branch, bukan langsung di `main`.
+Commit dan push ke `main` setelah user bilang gas.
 
 ## Research dan catatan kerja
 

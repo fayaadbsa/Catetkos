@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Deploy manual di VPS: pull main, build image lokal (bun + Next standalone), recreate container.
-# Migrasi Prisma jalan otomatis di entrypoint. Tanpa GHA/GHCR. Data ada di volume catetkos-prod_data.
+# Deploy manual di VPS: pull main, build image lokal (api Go + web Vite/nginx), recreate container.
+# Migrasi SQL jalan otomatis saat api start. DB = Postgres (DATABASE_URL di .env).
 set -euo pipefail
 cd "$(dirname "$0")"
 git pull --ff-only
